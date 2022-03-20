@@ -1,0 +1,24 @@
+{
+  "name": "synvert-api-javascript",
+  "version": "1.0.0",
+  "description": "synvert api javascript",
+  "main": "index.js",
+  "scripts": {
+    "compile": "tsc --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Richard Huang (flyerhzm@gmail.com)",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^17.0.21",
+    "aws-lambda": "^1.0.7",
+    "serverless-offline": "^8.5.0",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.2"
+  },
+  "dependencies": {
+    "espree": "^9.3.1",
+    "mock-fs": "^5.1.2",
+    "synvert-core": "^0.40.0"
+  }
+}
