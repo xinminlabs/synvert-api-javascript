@@ -21,7 +21,7 @@ export const generateAst = async (
     }
   } catch (error) {
     return {
-      statusCode: 500,
+      statusCode: 400,
       body: JSON.stringify({ error: error.message })
     }
   }
@@ -46,7 +46,7 @@ export const parseSynvertSnippet = async (
     }
   } catch (error) {
     return {
-      statusCode: 500,
+      statusCode: 400,
       body: JSON.stringify({ error: error.message })
     }
   }
