@@ -72,13 +72,13 @@ package:
 
 functions:
   generateAst:
-    handler: handler.generateAst
+    handler: handler.generateAstHandler
     events:
       - httpApi:
           path: /generate-ast
           method: post
   parseSynvertSnippet:
-    handler: handler.parseSynvertSnippet
+    handler: handler.parseSynvertSnippetHandler
     events:
       - httpApi:
           path: /parse-synvert-snippet
