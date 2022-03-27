@@ -67,7 +67,6 @@ provider:
 # you can add packaging information here
 package:
   patterns:
-    - '!*.ts'
     - '!*.md'
 
 functions:
@@ -136,4 +135,5 @@ functions:
 #       Value: "Some output value"
 
 plugins:
+  - serverless-plugin-typescript
   - serverless-offline

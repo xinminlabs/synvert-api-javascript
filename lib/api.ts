@@ -14,7 +14,6 @@ export const generateAst = (source: string): any => {
 export const parseSynvertSnippet = (source: string, snippet: string): string => {
   try {
     const path = 'code.js';
-    console.log(wrapSnippet(snippet));
     const rewriter = eval(wrapSnippet(snippet));
     mock({ [path]: source });
     rewriter.process();

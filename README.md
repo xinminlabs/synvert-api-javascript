@@ -8,9 +8,13 @@ serverless api to
 ## Development
 
 ```
-$ npm run compile
-
 $ sls offline
+```
+
+## Test
+
+```
+$ npm run test
 ```
 
 ## Deployment
