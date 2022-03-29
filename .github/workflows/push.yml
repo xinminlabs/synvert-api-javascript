@@ -11,6 +11,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Set up Nodejs
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+
       - name: Run npm ci
         run: npm ci
 
