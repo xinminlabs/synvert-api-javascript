@@ -1,0 +1,23 @@
+name: docker build and publish
+on:
+  push:
+    branches:
+      - master
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run npm ci
+        run: npm ci
+
+      - name: Serverless deploy
+        uses: serverless/github-action@v3
+        with:
+          args: deploy
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
