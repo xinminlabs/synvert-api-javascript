@@ -17,11 +17,10 @@ export const generateAst = (source: string, filePath: string): any => {
 
 export const parseSynvertSnippet = (source: string, filePath: string, snippet: string): string => {
   try {
-    const fakeFilePath = jsxEnabled(filePath) ? 'code.jsx' : 'code.js';
     const rewriter = eval(wrapSnippet(snippet));
-    mock({ [fakeFilePath]: source });
+    mock({ [filePath]: source });
     rewriter.process();
-    return fs.readFileSync(fakeFilePath, 'utf-8');
+    return fs.readFileSync(filePath, 'utf-8');
   } finally {
     mock.restore();
   }
