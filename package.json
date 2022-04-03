@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon lib/app.ts",
+    "build": "tsc",
     "test": "jest --watch"
   },
   "author": "Richard Huang (flyerhzm@gmail.com)",
