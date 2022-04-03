@@ -1,4 +1,3 @@
-import { parse } from 'path';
 import { generateAst, parseSynvertSnippet } from '../lib/api';
 
 describe("genereteAst", () => {
