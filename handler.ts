@@ -7,7 +7,7 @@ export const generateAstHandler = async (
 ): Promise<APIGatewayProxyResult> => {
   try {
     const requestBody = JSON.parse(event.body);
-    const node = generateAst(requestBody.code);
+    const node = generateAst(requestBody.code, requestBody.path);
     return {
       statusCode: 200,
       body: JSON.stringify({ node })
@@ -25,7 +25,7 @@ export const parseSynvertSnippetHandler = async (
 ): Promise<APIGatewayProxyResult> => {
   try {
     const requestBody = JSON.parse(event.body);
-    const output = parseSynvertSnippet(requestBody.code, requestBody.snippet)
+    const output = parseSynvertSnippet(requestBody.code, requestBody.path, requestBody.snippet)
     return {
       statusCode: 200,
       body: JSON.stringify({ output })

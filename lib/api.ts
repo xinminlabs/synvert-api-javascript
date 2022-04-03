@@ -1,26 +1,34 @@
 import * as espree from "espree";
 import fs from 'fs';
+import path from 'path';
 import mock from 'mock-fs';
 
-export const generateAst = (source: string): any => {
+export const generateAst = (source: string, filePath: string): any => {
   const options = {
     ecmaVersion: "latest",
     loc: true,
     sourceType: "module",
   };
+  if (jsxEnabled(filePath)) {
+    options["ecmaFeatures"] = { jsx: true };
+  }
   return espree.parse(source, options);
 }
 
-export const parseSynvertSnippet = (source: string, snippet: string): string => {
+export const parseSynvertSnippet = (source: string, filePath: string, snippet: string): string => {
   try {
-    const path = 'code.js';
+    const fakeFilePath = jsxEnabled(filePath) ? 'code.jsx' : 'code.js';
     const rewriter = eval(wrapSnippet(snippet));
-    mock({ [path]: source });
+    mock({ [fakeFilePath]: source });
     rewriter.process();
-    return fs.readFileSync(path, 'utf-8');
+    return fs.readFileSync(fakeFilePath, 'utf-8');
   } finally {
     mock.restore();
   }
+}
+
+const jsxEnabled = (filePath: string) : boolean => {
+  return path.extname(filePath) === ".jsx";
 }
 
 const wrapSnippet = (snippet: string): string => {

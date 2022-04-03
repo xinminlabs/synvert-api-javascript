@@ -4,17 +4,34 @@ import { generateAst, parseSynvertSnippet } from '../lib/api';
 describe("genereteAst", () => {
   it("gets node from source code", () => {
     const code = "class Synvert {}";
-    const node = generateAst(code)
+    const path = "lib/code.js";
+    const node = generateAst(code, path)
     expect(node).not.toBeNull();
   });
 
   it("raises error if source code is invalid", () => {
     const code = "class Synvert }";
-    expect(() => { generateAst(code) }).toThrow(SyntaxError);
+    const path = "lib/code.js";
+    expect(() => { generateAst(code, path) }).toThrow(SyntaxError);
+  });
+
+  it("gets jsx node from source code", () => {
+    const code = `
+      class Test extends Component {
+        render() {
+          return <Button />
+        }
+      }
+    `
+    const path = "lib/code.jsx";
+    const node = generateAst(code, path)
+    expect(node).not.toBeNull();
   });
 });
 
 describe("parseSynvertSnippet", () => {
+  const path = "lib/code.js";
+
   it("gets output from source code and snippet", () => {
     const code = "class Synvert {}";
     const snippet = `
@@ -27,7 +44,7 @@ describe("parseSynvertSnippet", () => {
         });
       });
     `;
-    const output = parseSynvertSnippet(code, snippet);
+    const output = parseSynvertSnippet(code, path, snippet);
     expect(output).toEqual("'use strict'\nclass Synvert {}");
   });
 
@@ -42,7 +59,7 @@ describe("parseSynvertSnippet", () => {
         });
       });
     `;
-    const output = parseSynvertSnippet(code, snippet);
+    const output = parseSynvertSnippet(code, path, snippet);
     expect(output).toEqual("'use strict'\nclass Synvert {}");
   });
 
@@ -55,7 +72,7 @@ describe("parseSynvertSnippet", () => {
         });
       });
     `;
-    const output = parseSynvertSnippet(code, snippet);
+    const output = parseSynvertSnippet(code, path, snippet);
     expect(output).toEqual("'use strict'\nclass Synvert {}");
   });
 
@@ -66,7 +83,7 @@ describe("parseSynvertSnippet", () => {
         prepend("'use strict'");
       });
     `;
-    const output = parseSynvertSnippet(code, snippet);
+    const output = parseSynvertSnippet(code, path, snippet);
     expect(output).toEqual("'use strict'\nclass Synvert {}");
   });
 
@@ -76,6 +93,6 @@ describe("parseSynvertSnippet", () => {
       const Synvert = require("synvert-core");
       new Synvert.Rewriter("javascript", "use-strict", () => {
     `;
-    expect(() => { parseSynvertSnippet(code, snippet) }).toThrow(SyntaxError);
+    expect(() => { parseSynvertSnippet(code, path, snippet) }).toThrow(SyntaxError);
   });
 });
