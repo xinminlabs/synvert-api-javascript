@@ -1,11 +1,13 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import bodyParser from 'body-parser';
+import cors from 'cors';
 import morgan from 'morgan';
 import { generateAst, parseSynvertSnippet } from './api';
 
 const port = process.env.PORT || 3000;
 const app: Express = express();
 const jsonParser = bodyParser.json();
+app.use(cors())
 app.use(morgan('combined'))
 
 app.get('/', (req: Request, res: Response) => {
