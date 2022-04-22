@@ -6,7 +6,8 @@
   "scripts": {
     "start": "nodemon lib/app.ts",
     "build": "tsc",
-    "test": "jest --watch"
+    "test": "jest",
+    "test_watch": "jest --watch"
   },
   "author": "Richard Huang (flyerhzm@gmail.com)",
   "license": "ISC",
