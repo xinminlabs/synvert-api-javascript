@@ -1,13 +1,11 @@
 import * as espree from "espree";
 import fs from 'fs';
-import path from 'path';
 import mock from 'mock-fs';
 
 export const generateAst = (source: string): any => {
   const options = {
     ecmaFeatures: { jsx: true },
     ecmaVersion: "latest",
-    loc: true,
     sourceType: "module",
   };
   return espree.parse(source, options);
