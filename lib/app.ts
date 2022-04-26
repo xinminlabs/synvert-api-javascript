@@ -15,12 +15,12 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.post('/generate-ast', jsonParser, (req: Request, res: Response) => {
-  const node = generateAst(req.body.code, req.body.path);
+  const node = generateAst(req.body.code);
   res.json({ node: node });
 });
 
 app.post('/parse-synvert-snippet', jsonParser, (req: Request, res: Response) => {
-  const output = parseSynvertSnippet(req.body.code, req.body.path, req.body.snippet);
+  const output = parseSynvertSnippet(req.body.code, req.body.snippet);
   res.json({ output: output });
 });
 

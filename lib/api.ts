@@ -3,31 +3,25 @@ import fs from 'fs';
 import path from 'path';
 import mock from 'mock-fs';
 
-export const generateAst = (source: string, filePath: string): any => {
+export const generateAst = (source: string): any => {
   const options = {
+    ecmaFeatures: { jsx: true },
     ecmaVersion: "latest",
     loc: true,
     sourceType: "module",
   };
-  if (jsxEnabled(filePath)) {
-    options["ecmaFeatures"] = { jsx: true };
-  }
   return espree.parse(source, options);
 }
 
-export const parseSynvertSnippet = (source: string, filePath: string, snippet: string): string => {
+export const parseSynvertSnippet = (source: string, snippet: string): string => {
   try {
     const rewriter = eval(wrapSnippet(snippet));
-    mock({ [filePath]: source });
+    mock({ 'code.js': source });
     rewriter.process();
-    return fs.readFileSync(filePath, 'utf-8');
+    return fs.readFileSync('code.js', 'utf-8');
   } finally {
     mock.restore();
   }
-}
-
-const jsxEnabled = (filePath: string) : boolean => {
-  return path.extname(filePath) === ".jsx";
 }
 
 const wrapSnippet = (snippet: string): string => {
