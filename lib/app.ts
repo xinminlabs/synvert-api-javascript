@@ -16,7 +16,7 @@ app.get('/', (req: Request, res: Response) => {
 
 app.post('/generate-ast', jsonParser, (req: Request, res: Response) => {
   const node = generateAst(req.body.code);
-  res.json({ node: node });
+  res.json({ node });
 });
 
 app.post('/parse-synvert-snippet', jsonParser, (req: Request, res: Response) => {
