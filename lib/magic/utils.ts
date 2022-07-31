@@ -14,7 +14,7 @@ export const allNodeTypeEqual = (nodes: Node[]): boolean => nodes.every(node => 
 
 export const allNodesEqual = (nodes: Node[]): boolean => nodes.every(node => nodesEqual(node, nodes[0]));
 
-const nodesEqual = (node1: Node, node2: Node): boolean => {
+export const nodesEqual = (node1: Node, node2: Node): boolean => {
   if (!isNode(node1)) {
     return false;
   }
@@ -25,11 +25,31 @@ const nodesEqual = (node1: Node, node2: Node): boolean => {
     return false;
   }
   const nodeType = getNodeType(node1);
-  return visitorKeys[nodeType].every(key => node1[key] == node2[key]);
+  if (nodeType === "Identifier") {
+    return node1['escapedText'] === node2['escapedText'];
+  } else {
+    return visitorKeys[nodeType].every(key => valuesEqual(node1[key], node2[key]));
+  }
+}
+
+const valuesEqual = (value1: any, value2: any): boolean => {
+  if (Array.isArray(value1) && Array.isArray(value2)) {
+    if (value1.length !== value2.length) {
+      return false;
+    }
+    return value1.every((v1, index) => {
+      return valuesEqual(v1, value2[index]);
+    })
+  } else if (isNode(value1) && isNode(value2)) {
+    return nodesEqual(value1, value2);
+  } else {
+    return value1 === value2;
+  }
 }
 
 export const visitorKeys = {
   CallExpression: ['expression', 'typeArguments', 'arguments'],
+  ClassDeclaration: ['members', 'name'],
   ExpressionStatement: ['expression'],
   Identifier: [],
   PropertyAccessExpression: ['expression', 'name'],

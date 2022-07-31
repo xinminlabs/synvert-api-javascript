@@ -4,14 +4,14 @@ import { parseJS } from "../test-helper";
 describe("Utils", () => {
   describe(".getNodeType", () => {
     it("gets node type text", () => {
-      const node = parseJS("$.isArray(foo)");
+      const node = parseJS("$.isArray(foo)")['expression'];
       expect(Utils.getNodeType(node)).toEqual("CallExpression");
     });
   });
 
   describe("isNode", () => {
     it("gets true if it is a node", () => {
-      const node = parseJS("$.isArray(foo)");
+      const node = parseJS("$.isArray(foo)")['expression'];
       expect(Utils.isNode(node)).toBeTruthy();
     });
 
@@ -54,15 +54,29 @@ describe("Utils", () => {
 
   describe("allNodeTypeEqual", () => {
     it("gets true if all node types are same", () => {
-      const node1 = parseJS("$.isArray(foo)");
-      const node2 = parseJS("$.isArray(bar)");
+      const node1 = parseJS("$.isArray(foo)")['expression'];
+      const node2 = parseJS("$.isArray(bar)")['expression'];
       expect(Utils.allNodeTypeEqual([node1, node2])).toBeTruthy();
     });
 
     it("gets false if not all node types are same", () => {
-      const node1 = parseJS("$.isArray(foo)");
-      const node2 = parseJS("true");
+      const node1 = parseJS("$.isArray(foo)")['expression'];
+      const node2 = parseJS("true")['expression'];
       expect(Utils.allNodeTypeEqual([node1, node2])).toBeFalsy();
+    });
+  });
+
+  describe("nodesEqual", () => {
+    it("gets true if two nodes are equal", () => {
+      const node1 = parseJS("$.isArray(foo)");
+      const node2 = parseJS("$.isArray(foo)");
+      expect(Utils.nodesEqual(node1, node2)).toBeTruthy();
+    });
+
+    it("gets false if two nodes are not equal", () => {
+      const node1 = parseJS("$.isArray(foo)");
+      const node2 = parseJS("$.isArray(bar)");
+      expect(Utils.nodesEqual(node1, node2)).toBeFalsy();
     });
   });
 });

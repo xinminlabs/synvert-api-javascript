@@ -21,7 +21,7 @@ class FindPattern {
   private nodesPattern(inputNodes: Node[], outputNode: Node[], builderNode: BuilderNode): void {
     const firstInputNode = inputNodes[0];
     const patterns = this.generatePatterns(this.inputNodes);
-    builderNode.addWithFundPattern(patterns, () => { });
+    builderNode.addWithFindPattern(patterns, () => { });
   }
 
   private generatePatterns(nodes: Node[]): any {

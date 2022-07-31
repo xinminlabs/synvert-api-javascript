@@ -28,9 +28,14 @@ export class BuilderNode {
     this.selected = true;
   }
 
-  addWithFundPattern(attributes, func): void {
+  addWithFindPattern(attributes: { [key: string]: any }, func: (BuilderNode) => void): void {
     const node = new FindPatternWithNode(attributes, this.level + 1)
     func.call(this, node);
+    this.addNode(node);
+  }
+
+  addConvertPattern(pattern: string): void {
+    const node = new ConvertPatternNode(pattern, this.level + 1);
     this.addNode(node);
   }
 
@@ -42,11 +47,11 @@ export class BuilderNode {
     return this.children.map(childNode => childNode.generateSnippet()).join("\n");
   }
 
-  patternIndent() {
+  protected patternIndent() {
     return this.level > 0 ? 2 : 0;
   }
 
-  addNode(node: BuilderNode) {
+  private addNode(node: BuilderNode) {
     this.children.push(node);
   }
 }
@@ -73,12 +78,12 @@ class FindPatternWithNode extends BuilderNode {
     const pattern = this.generateAttributesPattern(this.attributes);
     const result = [];
     result.push(`withNode({ ${pattern} }, () => {`);
-    // const childrenPattern = this.generateChildrenPattern();
-    // if (childrenPattern) {
-    //   result.push(childrenPattern);
-    // }
+    const childrenPattern = this.generateChildrenPattern();
+    if (childrenPattern) {
+      result.push(childrenPattern);
+    }
     result.push(`});`);
-    return result.join("\n");
+    return result.map(line => " ".repeat(this.patternIndent()) + line).join("\n");
   }
 
   private generateAttributesPattern(attributes: { [key: string]: any }): string {
@@ -94,6 +99,18 @@ class FindPatternWithNode extends BuilderNode {
         return `${key}: ${value}`;
       }
     }).filter(attribute => attribute).join(", ");
+  }
+}
+
+class ConvertPatternNode extends BuilderNode {
+  constructor(private pattern: string, level: number) {
+    super();
+    this.pattern = pattern;
+    this.level = level;
+  }
+
+  generateSnippet(): string {
+    return " ".repeat(this.patternIndent()) + this.pattern;
   }
 }
 

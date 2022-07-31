@@ -7,7 +7,7 @@ describe("FindPattern", () => {
       const inputNodes = [parseJS("$.isArray(foo)"), parseJS("$.isArray(bar)")];
       const outputNodes = [parseJS("Array.isArray(foo)"), parseJS("Array.isArray(bar)")];
       const findPattern = new FindPattern(inputNodes, outputNodes);
-      const expected = `withNode({ type: "CallExpression", expression: { type: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { length: 1 } }, () => {\n});`;
+      const expected = `withNode({ type: "ExpressionStatement", expression: { type: "CallExpression", expression: { type: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { length: 1 } } }, () => {\n});`;
       expect(findPattern.call()).toEqual([expected]);
     });
   });
@@ -19,13 +19,16 @@ describe("FindPattern", () => {
       const nodes = [parseJS("$.isArray(foo)"), parseJS("$.isArray(bar)")];
       const patterns = findPattern['generatePatterns'](nodes);
       expect(patterns).toEqual({
-        type: "CallExpression",
+        type: "ExpressionStatement",
         expression: {
-          expression: "$",
-          name: "isArray",
-          type: "PropertyAccessExpression",
-        },
-        arguments: { length: 1 }
+          type: "CallExpression",
+          expression: {
+            expression: "$",
+            name: "isArray",
+            type: "PropertyAccessExpression",
+          },
+          arguments: { length: 1 }
+        }
       });
     });
   });
@@ -37,13 +40,16 @@ describe("FindPattern", () => {
       const node = parseJS("$.isArray(foo)");
       const value = findPattern['valueInPattern'](node);
       expect(value).toEqual({
-        type: "CallExpression",
+        type: "ExpressionStatement",
         expression: {
-          expression: "$",
-          name: "isArray",
-          type: "PropertyAccessExpression",
-        },
-        arguments: { '0': 'foo', length: 1 }
+          type: "CallExpression",
+          expression: {
+            expression: "$",
+            name: "isArray",
+            type: "PropertyAccessExpression",
+          },
+          arguments: { '0': 'foo', length: 1 }
+        }
       });
     });
   });
