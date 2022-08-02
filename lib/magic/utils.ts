@@ -1,4 +1,8 @@
-import { Node, SyntaxKind } from "typescript";
+import { createSourceFile, Node, SyntaxKind, ScriptKind, ScriptTarget } from "typescript";
+
+export const parseCode = (code: string): Node => {
+  return createSourceFile("code.ts", code, ScriptTarget.Latest, true, ScriptKind.TS).statements[0];
+}
 
 export const getNodeType = (node: Node) => SyntaxKind[node.kind];
 

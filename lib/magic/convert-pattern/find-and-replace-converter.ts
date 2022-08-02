@@ -1,11 +1,9 @@
 import { Node } from "typescript";
-import { BuilderNode } from "../builder";
+import BaseConverter from "./base-converter";
 import  FakeNode from "../fake-node";
 import { getNodeType, visitorKeys, nodesEqual, isNode } from "../utils";
 
-class FindAndReplaceConverter {
-  constructor(private inputNodes: Node[], private outputNodes: Node[], private builderNode: BuilderNode) {}
-
+class FindAndReplaceConverter extends BaseConverter {
   call() {
     const firstInputNode = this.inputNodes[0];
     const firstOutputNode = this.outputNodes[0];

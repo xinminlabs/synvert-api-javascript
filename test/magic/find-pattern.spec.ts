@@ -1,3 +1,4 @@
+import dedent from "dedent";
 import FindPattern from "../../lib/magic/find-pattern";
 import { parseJS } from "../test-helper";
 
@@ -6,14 +7,17 @@ describe("FindPattern", () => {
     it("finds pattern", () => {
       const inputNodes = [parseJS("$.isArray(foo)"), parseJS("$.isArray(bar)")];
       const outputNodes = [parseJS("Array.isArray(foo)"), parseJS("Array.isArray(bar)")];
-      const findPattern = new FindPattern(inputNodes, outputNodes);
-      const expected = `withNode({ type: "ExpressionStatement", expression: { type: "CallExpression", expression: { type: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { length: 1 } } }, () => {\n});`;
+      const findPattern = new FindPattern(inputNodes, outputNodes, () => {});
+      const expected = dedent`
+        withNode({ type: "ExpressionStatement", expression: { type: "CallExpression", expression: { type: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { length: 1 } } }, () => {
+        });
+      `;
       expect(findPattern.call()).toEqual([expected]);
     });
   });
 
   describe("#generatePatterns", () => {
-    const findPattern = new FindPattern([], []);
+    const findPattern = new FindPattern([], [], () => {});
 
     it("gets pattern", () => {
       const nodes = [parseJS("$.isArray(foo)"), parseJS("$.isArray(bar)")];
@@ -34,7 +38,7 @@ describe("FindPattern", () => {
   });
 
   describe("#valueInPattern", () => {
-    const findPattern = new FindPattern([], []);
+    const findPattern = new FindPattern([], [], () => {});
 
     it("get value for node", () => {
       const node = parseJS("$.isArray(foo)");

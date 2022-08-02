@@ -14,7 +14,10 @@ class Builder {
   generateSnippets(): string[] {
     const snippets = [];
     snippets.push(this.root.generateSnippet());
-    return snippets;
+    while(this.root.hasUnselectedChild()) {
+      snippets.push(this.root.generateSnippet());
+    }
+    return snippets.filter(snippet => snippet.length > 0);
   }
 }
 
@@ -39,20 +42,43 @@ export class BuilderNode {
     this.addNode(node);
   }
 
+  addSelective(func: (BuilderNode) => void): void {
+    const node = new SelectiveNode(this.level);
+    func.call(this, node);
+    this.addNode(node);
+  }
+
   generateSnippet(): string {
     return "";
   }
 
   generateChildrenPattern(): string {
+    if (this.children.some(child => child instanceof SelectiveNode)) {
+      const child = this.children.find(child => ((child.selected && child.hasUnselectedChild()) || !child.selected) && child.isActive());
+      if (child) {
+        return child.generateSnippet();
+      }
+      return "";
+    }
     return this.children.map(childNode => childNode.generateSnippet()).join("\n");
   }
 
-  protected patternIndent() {
+  hasUnselectedChild(): boolean {
+    return this.children.some((child) =>
+      (((child instanceof SelectiveNode) && !child.selected) || child.hasUnselectedChild()) && child.isActive()
+    );
+  }
+
+  protected patternIndent(): number {
     return this.level > 0 ? 2 : 0;
   }
 
-  private addNode(node: BuilderNode) {
+  private addNode(node: BuilderNode): void {
     this.children.push(node);
+  }
+
+  private isActive(): boolean {
+    return this.children.some((child) => ((child instanceof ConvertPatternNode) && !child.isEmpty()) || child.isActive())
   }
 }
 
@@ -109,8 +135,25 @@ class ConvertPatternNode extends BuilderNode {
     this.level = level;
   }
 
+  isEmpty() {
+    return this.pattern.length === 0;
+  }
+
   generateSnippet(): string {
     return " ".repeat(this.patternIndent()) + this.pattern;
+  }
+}
+
+class SelectiveNode extends BuilderNode {
+  constructor(level: number) {
+    super();
+    this.level = level;
+    this.selected = false;
+  }
+
+  generateSnippet(): string {
+    this.selected = true;
+    return this.generateChildrenPattern();
   }
 }
 

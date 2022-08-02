@@ -1,9 +1,10 @@
 import { Node, SyntaxKind } from "typescript";
+import { ConvertPatternOptions } from "./types";
 import Builder, { BuilderNode } from "./builder";
 import { allArrays, allEqual, allNodes, allNodesEqual, allNodeTypeEqual, getNodeType, isNode, visitorKeys } from "./utils";
 
 class FindPattern {
-  constructor(private inputNodes: Node[], private outputNodes: Node[]) {}
+  constructor(private inputNodes: Node[], private outputNodes: Node[], private convertFunc: (ConvertPatternOptions) => void) {}
 
   call(): string[] {
     if (!allNodeTypeEqual(this.inputNodes)) {
@@ -18,10 +19,18 @@ class FindPattern {
     });
   }
 
-  private nodesPattern(inputNodes: Node[], outputNode: Node[], builderNode: BuilderNode): void {
-    const firstInputNode = inputNodes[0];
-    const patterns = this.generatePatterns(this.inputNodes);
-    builderNode.addWithFindPattern(patterns, () => { });
+  private nodesPattern(inputNodes: Node[], outputNodes: Node[], builderNode: BuilderNode): void {
+    const patterns = this.generatePatterns(inputNodes);
+    builderNode.addWithFindPattern(patterns, (findPatternNode) => {
+      findPatternNode.addSelective((selectiveNode) => {
+        this.convertFunc.call(this, {
+          inputNodes,
+          outputNodes,
+          builderNode: selectiveNode,
+          converterType: "findAndReplace",
+        });
+      });
+    });
   }
 
   private generatePatterns(nodes: Node[]): any {
