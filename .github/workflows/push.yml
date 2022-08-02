@@ -1,10 +1,10 @@
-name: build, test and publish
+name: test and publish
 on:
   push:
     branches:
       - master
 jobs:
-  build:
+  test:
     name: test
     runs-on: ubuntu-latest
     steps:
@@ -17,6 +17,7 @@ jobs:
 
   deploy:
     name: deploy
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Get Short SHA
