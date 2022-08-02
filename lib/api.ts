@@ -45,7 +45,7 @@ const wrapSnippet = (snippet: string): string => {
   return `
     const Synvert = require("synvert-core")
     new Synvert.Rewriter("group", "name", () => {
-      withinFiles(Synvert.ALL_FILES, function () {
+      withinFiles(Synvert.ALL_JS_FILES, function () {
         ${snippet}
       });
     });
