@@ -80,7 +80,7 @@ describe("FindAndReplaceConverter", () => {
       const converter = new FindAndReplaceConverter(inputNodes, outputNodes, builderNode);
       converter.call();
       expect(builderNode["children"].length).toEqual(1);
-      expect(builderNode["children"][0].generateSnippet()).toEqual("replaceWith jQuery.{{expression.name}}({{arguments.0}});");
+      expect(builderNode["children"][0].generateSnippet()).toEqual("replaceWith(jQuery.{{expression.name}}({{arguments.0}}));");
     });
   });
 });
