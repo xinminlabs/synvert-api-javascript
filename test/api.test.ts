@@ -32,7 +32,7 @@ describe("parseSynvertSnippet", () => {
       const Synvert = require("synvert-core");
       new Synvert.Rewriter("javascript", "use-strict", () => {
         withinFiles(Synvert.ALL_JS_FILES, () => {
-          unlessExistNode({ type: "ExpressionStatement", directive: "use strict" }, () => {
+          unlessExistNode({ nodeType: "ExpressionStatement", directive: "use strict" }, () => {
             insert("'use strict'\\n", { at: "beginning" });
           });
         });
@@ -47,7 +47,7 @@ describe("parseSynvertSnippet", () => {
     const snippet = `
       new Synvert.Rewriter("javascript", "use-strict", () => {
         withinFiles(Synvert.ALL_JS_FILES, () => {
-          unlessExistNode({ type: "ExpressionStatement", directive: "use strict" }, () => {
+          unlessExistNode({ nodeType: "ExpressionStatement", directive: "use strict" }, () => {
             insert("'use strict'\\n", { at: "beginning" });
           });
         });
@@ -61,7 +61,7 @@ describe("parseSynvertSnippet", () => {
     const code = "class Synvert {}";
     const snippet = `
       withinFiles(Synvert.ALL_JS_FILES, () => {
-        unlessExistNode({ type: "ExpressionStatement", directive: "use strict" }, () => {
+        unlessExistNode({ nodeType: "ExpressionStatement", directive: "use strict" }, () => {
           insert("'use strict'\\n", { at: "beginning" });
         });
       });
@@ -73,7 +73,7 @@ describe("parseSynvertSnippet", () => {
   it("gets output from source code and snippet when snippet is short 3", () => {
     const code = "class Synvert {}";
     const snippet = `
-      unlessExistNode({ type: "ExpressionStatement", directive: "use strict" }, () => {
+      unlessExistNode({ nodeType: "ExpressionStatement", directive: "use strict" }, () => {
         insert("'use strict'\\n", { at: "beginning" });
       });
     `;

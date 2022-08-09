@@ -9,7 +9,7 @@ describe("FindPattern", () => {
       const outputNodes = [parseJS("Array.isArray(foo)"), parseJS("Array.isArray(bar)")];
       const findPattern = new FindPattern(inputNodes, outputNodes, () => {});
       const expected = dedent`
-        withNode({ type: "ExpressionStatement", expression: { type: "CallExpression", expression: { type: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { length: 1 } } }, () => {
+        withNode({ nodeType: "ExpressionStatement", expression: { nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { length: 1 } } }, () => {
         });
       `;
       expect(findPattern.call()).toEqual([expected]);
@@ -23,13 +23,13 @@ describe("FindPattern", () => {
       const nodes = [parseJS("$.isArray(foo)"), parseJS("$.isArray(bar)")];
       const patterns = findPattern['generatePatterns'](nodes);
       expect(patterns).toEqual({
-        type: "ExpressionStatement",
+        nodeType: "ExpressionStatement",
         expression: {
-          type: "CallExpression",
+          nodeType: "CallExpression",
           expression: {
             expression: "$",
             name: "isArray",
-            type: "PropertyAccessExpression",
+            nodeType: "PropertyAccessExpression",
           },
           arguments: { length: 1 }
         }
@@ -44,13 +44,13 @@ describe("FindPattern", () => {
       const node = parseJS("$.isArray(foo)");
       const value = findPattern['valueInPattern'](node);
       expect(value).toEqual({
-        type: "ExpressionStatement",
+        nodeType: "ExpressionStatement",
         expression: {
-          type: "CallExpression",
+          nodeType: "CallExpression",
           expression: {
             expression: "$",
             name: "isArray",
-            type: "PropertyAccessExpression",
+            nodeType: "PropertyAccessExpression",
           },
           arguments: { '0': 'foo', length: 1 }
         }

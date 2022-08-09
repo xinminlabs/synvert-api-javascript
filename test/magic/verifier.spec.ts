@@ -1,0 +1,16 @@
+import dedent from "dedent";
+import Verifier from "../../lib/magic/verifier";
+
+describe("Verifier", () => {
+  it("verifies the snippet", () => {
+    const inputs = ["$.isArray(foo)", "$.isArray(bar)"];
+    const outputs = ["Array.isArray(foo)", "Array.isArray(bar)"];
+    const snippet = dedent`
+      withNode({ nodeType: "ExpressionStatement", expression: { nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { length: 1 } } }, () => {
+        replaceWith("Array.{{expression.expression.name}}({{expression.arguments.0}})");
+      });
+    `;
+    const verifier = new Verifier(snippet, "ts", inputs, outputs);
+    expect(verifier.call()).toBeTruthy();
+  });
+});

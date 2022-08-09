@@ -42,7 +42,7 @@ class FindPattern {
     }
 
     const nodeType = getNodeType(nodes[0]);
-    const pattern = { type: nodeType };
+    const pattern = { nodeType: nodeType };
     visitorKeys[nodeType].forEach(key => {
       const values = nodes.map(node => node[key]);
       if (allEqual(values)) {
@@ -66,7 +66,7 @@ class FindPattern {
           return value.getFullText();
         default:
           const inputType = getNodeType(value);
-          const result = { type: inputType };
+          const result = { nodeType: inputType };
           visitorKeys[inputType].forEach(key => {
             result[key] = this.valueInPattern(value[key]);
           });

@@ -10,7 +10,7 @@ class FindAndReplaceConverter extends BaseConverter {
 
     const replacedNode = this.replaceNode(firstOutputNode, firstInputNode);
     const newStr = this.generateSourceCode(replacedNode);
-    this.builderNode.addConvertPattern(`replaceWith(${newStr});`);
+    this.builderNode.addConvertPattern(`replaceWith("${newStr}");`);
   }
 
   private replaceNode(replacedNode: Node | FakeNode, inputNode: Node | Node[], key?: string): Node | FakeNode {
