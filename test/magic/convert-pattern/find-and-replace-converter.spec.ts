@@ -25,7 +25,7 @@ describe("FindAndReplaceConverter", () => {
 
   describe("#deepUpdated", () => {
     it("updates node by names", () => {
-      const node = parseJS("$.isArray");
+      const node = parseJS("$.isArray(foo)")["expression"];
       const fakeNode = new FakeNode("foobar");
       converter["deepUpdated"](node, ["expression", "expression"], fakeNode);
       expect(node["expression"]["expression"]).toBeInstanceOf(FakeNode);
@@ -34,7 +34,7 @@ describe("FindAndReplaceConverter", () => {
 
   describe("#getAllFakeNodes", () => {
     it("get all fake nodes", () => {
-      const node = parseJS("$.isArray(foo)");
+      const node = parseJS("$.isArray(foo)")["expression"];
       const fakeNode = new FakeNode("foobar");
       converter["deepUpdated"](node, ["expression", "expression"], fakeNode);
       const allFakeNodes = converter["getAllFakeNodes"](node);
@@ -44,9 +44,9 @@ describe("FindAndReplaceConverter", () => {
 
   describe("#generateSourceCode", () => {
     it("generates source code", () => {
-      const node = parseJS("$.isArray(foo)");
+      const node = parseJS("$.isArray(foo)")["expression"];
       const fakeNode = new FakeNode("{{expression.name}}");
-      converter["deepUpdated"](node, ["expression", "expression", "name"], fakeNode);
+      converter["deepUpdated"](node, ["expression", "name"], fakeNode);
       const sourceCode = converter["generateSourceCode"](node);
       expect(sourceCode).toEqual("$.{{expression.name}}(foo)");
     });
@@ -74,8 +74,8 @@ describe("FindAndReplaceConverter", () => {
 
   describe("#call", () => {
     it("generates replaceWith snippet", () => {
-      const inputNodes = [parseJS("$.isArray(foo)")["expression"], parseJS("$.isArray(bar)")];
-      const outputNodes = [parseJS("jQuery.isArray(foo)")["expression"], parseJS("jQuery.isArray(bar)")];
+      const inputNodes = [parseJS("$.isArray(foo)")["expression"], parseJS("$.isArray(bar)")["expression"]];
+      const outputNodes = [parseJS("jQuery.isArray(foo)")["expression"], parseJS("jQuery.isArray(bar)")["expression"]];
       const builderNode = new BuilderNode();
       const converter = new FindAndReplaceConverter(inputNodes, outputNodes, builderNode);
       converter.call();

@@ -8,7 +8,7 @@ describe("Analyzer", () => {
       const outputs = ["Array.isArray(foo)", "Array.isArray(bar)"];
       const analyzer = new Analyzer(inputs, outputs);
       const expected = dedent`
-        withNode({ nodeType: "ExpressionStatement", expression: { nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { length: 1 } } }, () => {
+        withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { length: 1 } }, () => {
           replaceWith("Array.{{expression.name}}({{arguments.0}})");
         });
       `;
