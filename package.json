@@ -31,6 +31,7 @@
     "express": "^4.17.3",
     "mock-fs": "^5.1.2",
     "morgan": "^1.10.0",
-    "synvert-core": "^1.5.2"
+    "synvert-core": "^1.5.2",
+    "typescript-visitor-keys": "^0.1.1"
   }
 }

@@ -1,3 +1,4 @@
+import { KEYS } from "typescript-visitor-keys";
 import { createSourceFile, Node, SyntaxKind, ScriptKind, ScriptTarget } from "typescript";
 
 export const parseCode = (code: string): Node => {
@@ -32,7 +33,7 @@ export const nodesEqual = (node1: Node, node2: Node): boolean => {
   if (nodeType === "Identifier") {
     return node1['escapedText'] === node2['escapedText'];
   } else {
-    return visitorKeys[nodeType].every(key => valuesEqual(node1[key], node2[key]));
+    return KEYS[nodeType].every(key => valuesEqual(node1[key], node2[key]));
   }
 }
 
@@ -49,12 +50,4 @@ const valuesEqual = (value1: any, value2: any): boolean => {
   } else {
     return value1 === value2;
   }
-}
-
-export const visitorKeys = {
-  CallExpression: ['expression', 'typeArguments', 'arguments'],
-  ClassDeclaration: ['members', 'name'],
-  ExpressionStatement: ['expression'],
-  Identifier: [],
-  PropertyAccessExpression: ['expression', 'name'],
 }
