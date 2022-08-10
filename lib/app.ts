@@ -2,7 +2,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import morgan from 'morgan';
-import { generateAst, parseSynvertSnippet } from './api';
+import { generateAst, generateSnippet, parseSynvertSnippet } from './api';
 
 const port = process.env.PORT || 3000;
 const app: Express = express();
@@ -21,7 +21,12 @@ app.post('/generate-ast', jsonParser, (req: Request, res: Response) => {
 
 app.post('/parse-synvert-snippet', jsonParser, (req: Request, res: Response) => {
   const output = parseSynvertSnippet(req.body.code, req.body.snippet);
-  res.json({ output: output });
+  res.json({ output });
+});
+
+app.post('/generate-snippet', jsonParser, (req: Request, res: Response) => {
+  const snippet = generateSnippet(req.body.extension, req.body.inputs, req.body.outputs);
+  res.json({ snippet });
 });
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

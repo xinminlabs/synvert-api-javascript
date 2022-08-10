@@ -1,4 +1,5 @@
-import { generateAst, parseSynvertSnippet } from '../lib/api';
+import dedent from 'dedent';
+import { generateAst, parseSynvertSnippet, generateSnippet } from '../lib/api';
 
 describe("genereteAst", () => {
   it("gets node from source code", () => {
@@ -88,5 +89,18 @@ describe("parseSynvertSnippet", () => {
       new Synvert.Rewriter("javascript", "use-strict", () => {
     `;
     expect(() => { parseSynvertSnippet(code, snippet) }).toThrow(SyntaxError);
+  });
+});
+
+describe("genereteSnippet", () => {
+  it("gets snippet", () => {
+    const extension = "ts";
+    const inputs = ["$.isArray(foo)", "$.isArray(bar)"];
+    const outputs = ["Array.isArray(foo)", "Array.isArray(bar)"];
+    expect(generateSnippet(extension, inputs, outputs)).toEqual(dedent`
+      withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { length: 1 } }, () => {
+        replaceWith("Array.{{expression.name}}({{arguments.0}})");
+      });
+    `);
   });
 });

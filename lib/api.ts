@@ -1,6 +1,7 @@
 import * as espree from "espree";
 import fs from 'fs';
 import mock from 'mock-fs';
+import Magic from "./magic";
 
 export const generateAst = (source: string): any => {
   const options = {
@@ -20,6 +21,10 @@ export const parseSynvertSnippet = (source: string, snippet: string): string => 
   } finally {
     mock.restore();
   }
+}
+
+export const generateSnippet = (extension: string, inputs: string[], outputs: string[]): string => {
+  return Magic.call(extension, inputs, outputs);
 }
 
 const wrapSnippet = (snippet: string): string => {
