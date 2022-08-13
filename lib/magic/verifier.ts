@@ -1,5 +1,6 @@
 import fs from "fs";
 import mock from "mock-fs";
+import { getFileName } from "./utils";
 
 class Verifier {
   constructor(private snippet: string, private extension: string, private inputs: string[], private outputs: string[]) { }
@@ -7,7 +8,7 @@ class Verifier {
   call(): boolean {
     try {
       return this.inputs.every((input, index) => {
-        const fileName = `code.${this.extension}`;
+        const fileName = getFileName(this.extension);
         const snippet = `
           const Synvert = require("synvert-core");
           new Synvert.Rewriter("group", "name", () => {

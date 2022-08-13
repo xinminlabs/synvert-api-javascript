@@ -1,8 +1,12 @@
 import { KEYS } from "typescript-visitor-keys";
 import { createSourceFile, Node, SyntaxKind, ScriptKind, ScriptTarget } from "typescript";
 
+export const getFileName = (extension: string): string => {
+  return `code.${extension}`;
+}
+
 export const parseCode = (extension: string, code: string): Node => {
-  const fileName = `code.${extension}`;
+  const fileName = getFileName(extension);
   const scriptKind = getScriptKind(extension);
   return createSourceFile(fileName, code, ScriptTarget.Latest, true, scriptKind).statements[0];
 }
