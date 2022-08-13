@@ -1,8 +1,10 @@
 import { KEYS } from "typescript-visitor-keys";
 import { createSourceFile, Node, SyntaxKind, ScriptKind, ScriptTarget } from "typescript";
 
-export const parseCode = (code: string): Node => {
-  return createSourceFile("code.ts", code, ScriptTarget.Latest, true, ScriptKind.TS).statements[0];
+export const parseCode = (extension: string, code: string): Node => {
+  const fileName = `code.${extension}`;
+  const scriptKind = getScriptKind(extension);
+  return createSourceFile(fileName, code, ScriptTarget.Latest, true, scriptKind).statements[0];
 }
 
 export const getNodeType = (node: Node) => SyntaxKind[node.kind];
@@ -49,5 +51,20 @@ const valuesEqual = (value1: any, value2: any): boolean => {
     return nodesEqual(value1, value2);
   } else {
     return value1 === value2;
+  }
+}
+
+const getScriptKind = (extension: string): ScriptKind => {
+  switch (extension) {
+    case "ts":
+      return ScriptKind.TS;
+    case "tsx":
+      return ScriptKind.TSX;
+    case "js":
+      return ScriptKind.JS;
+    case "jsx":
+      return ScriptKind.JSX;
+      default:
+        return ScriptKind.Unknown;
   }
 }
