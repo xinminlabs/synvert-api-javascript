@@ -21,10 +21,18 @@ const validateInputsOutputs = (req: Request, res: Response, next: NextFunction) 
   if (req.body.inputs.length !== req.body.outputs.length) {
     return res.status(400).json({ error: "Inputs size is not equal to outputs size." });
   }
-  if (req.body.inputs.some(input => typeof parseCode(req.body.extension, input) === "undefined")) {
+  try {
+    if (req.body.inputs.some(input => typeof parseCode(req.body.extension, input) === "undefined")) {
+      return res.status(400).json({ error: "Inputs are invalid." });
+    }
+  } catch (e) {
     return res.status(400).json({ error: "Inputs are invalid." });
   }
-  if (req.body.outputs.some(output => typeof parseCode(req.body.extension, output) === "undefined")) {
+  try {
+    if (req.body.outputs.some(output => typeof parseCode(req.body.extension, output) === "undefined")) {
+      return res.status(400).json({ error: "Outputs are invalid." });
+    }
+  } catch (e) {
     return res.status(400).json({ error: "Outputs are invalid." });
   }
   next();
@@ -35,7 +43,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.post('/generate-ast', jsonParser, (req: Request, res: Response) => {
-  const node = generateAst(req.body.code);
+  const node = generateAst(req.body.extension, req.body.code);
   res.json({ node });
 });
 

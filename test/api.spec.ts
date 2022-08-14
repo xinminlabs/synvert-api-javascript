@@ -4,13 +4,13 @@ import { generateAst, parseSynvertSnippet, generateSnippet } from '../lib/api';
 describe("genereteAst", () => {
   it("gets node from source code", () => {
     const code = "class Synvert {}";
-    const node = generateAst(code)
+    const node = generateAst("ts", code)
     expect(node).not.toBeNull();
   });
 
   it("raises error if source code is invalid", () => {
     const code = "class Synvert }";
-    expect(() => { generateAst(code) }).toThrow(SyntaxError);
+    expect(() => { generateAst("ts", code) }).toThrow(SyntaxError);
   });
 
   it("gets jsx node from source code", () => {
@@ -21,7 +21,7 @@ describe("genereteAst", () => {
         }
       }
     `
-    const node = generateAst(code)
+    const node = generateAst("tsx", code)
     expect(node).not.toBeNull();
   });
 });

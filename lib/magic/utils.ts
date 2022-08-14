@@ -1,5 +1,5 @@
 import { KEYS } from "typescript-visitor-keys";
-import { createSourceFile, Node, SyntaxKind, ScriptKind, ScriptTarget } from "typescript";
+import { createProgram, createSourceFile, Node, SyntaxKind, ScriptKind, ScriptTarget } from "typescript";
 
 export const getFileName = (extension: string): string => {
   return `code.${extension}`;
@@ -8,7 +8,13 @@ export const getFileName = (extension: string): string => {
 export const parseCode = (extension: string, code: string): Node => {
   const fileName = getFileName(extension);
   const scriptKind = getScriptKind(extension);
-  return createSourceFile(fileName, code, ScriptTarget.Latest, true, scriptKind).statements[0];
+  const node = createSourceFile(fileName, code, ScriptTarget.Latest, true, scriptKind);
+  const program = createProgram([fileName], {});
+  const diagnotics = program.getSyntacticDiagnostics(node);
+  if (diagnotics.length > 0) {
+    throw new SyntaxError(diagnotics[0].messageText.toString());
+  }
+  return node.statements[0];
 }
 
 export const getNodeType = (node: Node) => SyntaxKind[node.kind];

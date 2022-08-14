@@ -2,14 +2,10 @@ import * as espree from "espree";
 import fs from 'fs';
 import mock from 'mock-fs';
 import Magic from "./magic";
+import { parseCode } from "./magic/utils";
 
-export const generateAst = (source: string): any => {
-  const options = {
-    ecmaFeatures: { jsx: true },
-    ecmaVersion: "latest",
-    sourceType: "module",
-  };
-  return espree.parse(source, options);
+export const generateAst = (extension: string, code: string): any => {
+  return parseCode(extension, code);
 }
 
 export const parseSynvertSnippet = (source: string, snippet: string): string => {
