@@ -1,11 +1,10 @@
-import * as espree from "espree";
 import fs from 'fs';
 import mock from 'mock-fs';
 import Magic from "./magic";
 import { parseCode } from "./magic/utils";
 
 export const generateAst = (extension: string, code: string): any => {
-  return parseCode(extension, code);
+  return parseCode(extension, code, false);
 }
 
 export const parseSynvertSnippet = (source: string, snippet: string): string => {

@@ -5,10 +5,10 @@ export const getFileName = (extension: string): string => {
   return `code.${extension}`;
 }
 
-export const parseCode = (extension: string, code: string): Node => {
+export const parseCode = (extension: string, code: string, parent = true): Node => {
   const fileName = getFileName(extension);
   const scriptKind = getScriptKind(extension);
-  const node = createSourceFile(fileName, code, ScriptTarget.Latest, true, scriptKind);
+  const node = createSourceFile(fileName, code, ScriptTarget.Latest, parent, scriptKind);
   const program = createProgram([fileName], {});
   const diagnotics = program.getSyntacticDiagnostics(node);
   if (diagnotics.length > 0) {
