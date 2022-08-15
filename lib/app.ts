@@ -48,7 +48,7 @@ app.post('/generate-ast', jsonParser, (req: Request, res: Response) => {
 });
 
 app.post('/parse-synvert-snippet', jsonParser, (req: Request, res: Response) => {
-  const output = parseSynvertSnippet(req.body.code, req.body.snippet);
+  const output = parseSynvertSnippet(req.body.extension, req.body.code, req.body.snippet);
   res.json({ output });
 });
 

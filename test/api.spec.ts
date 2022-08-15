@@ -32,6 +32,7 @@ describe("parseSynvertSnippet", () => {
     const snippet = `
       const Synvert = require("synvert-core");
       new Synvert.Rewriter("javascript", "use-strict", () => {
+        configure({ parser: 'typescript' });
         withinFiles(Synvert.ALL_JS_FILES, () => {
           unlessExistNode({ nodeType: "ExpressionStatement", directive: "use strict" }, () => {
             insert("'use strict'\\n", { at: "beginning" });
@@ -39,7 +40,7 @@ describe("parseSynvertSnippet", () => {
         });
       });
     `;
-    const output = parseSynvertSnippet(code, snippet);
+    const output = parseSynvertSnippet("js", code, snippet);
     expect(output).toEqual("'use strict'\nclass Synvert {}");
   });
 
@@ -47,6 +48,7 @@ describe("parseSynvertSnippet", () => {
     const code = "class Synvert {}";
     const snippet = `
       new Synvert.Rewriter("javascript", "use-strict", () => {
+        configure({ parser: 'typescript' });
         withinFiles(Synvert.ALL_JS_FILES, () => {
           unlessExistNode({ nodeType: "ExpressionStatement", directive: "use strict" }, () => {
             insert("'use strict'\\n", { at: "beginning" });
@@ -54,7 +56,7 @@ describe("parseSynvertSnippet", () => {
         });
       });
     `;
-    const output = parseSynvertSnippet(code, snippet);
+    const output = parseSynvertSnippet("js", code, snippet);
     expect(output).toEqual("'use strict'\nclass Synvert {}");
   });
 
@@ -67,7 +69,7 @@ describe("parseSynvertSnippet", () => {
         });
       });
     `;
-    const output = parseSynvertSnippet(code, snippet);
+    const output = parseSynvertSnippet("js", code, snippet);
     expect(output).toEqual("'use strict'\nclass Synvert {}");
   });
 
@@ -78,7 +80,7 @@ describe("parseSynvertSnippet", () => {
         insert("'use strict'\\n", { at: "beginning" });
       });
     `;
-    const output = parseSynvertSnippet(code, snippet);
+    const output = parseSynvertSnippet("js", code, snippet);
     expect(output).toEqual("'use strict'\nclass Synvert {}");
   });
 
@@ -88,7 +90,7 @@ describe("parseSynvertSnippet", () => {
       const Synvert = require("synvert-core");
       new Synvert.Rewriter("javascript", "use-strict", () => {
     `;
-    expect(() => { parseSynvertSnippet(code, snippet) }).toThrow(SyntaxError);
+    expect(() => { parseSynvertSnippet("js", code, snippet) }).toThrow(SyntaxError);
   });
 });
 

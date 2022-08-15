@@ -1,18 +1,19 @@
 import fs from 'fs';
 import mock from 'mock-fs';
 import Magic from "./magic";
-import { parseCode } from "./magic/utils";
+import { getFileName, parseCode } from "./magic/utils";
 
 export const generateAst = (extension: string, code: string): any => {
   return parseCode(extension, code, false);
 }
 
-export const parseSynvertSnippet = (source: string, snippet: string): string => {
+export const parseSynvertSnippet = (extension: string, code: string, snippet: string): string => {
   try {
-    const rewriter = eval(wrapSnippet(snippet));
-    mock({ 'code.js': source });
+    const fileName = getFileName(extension);
+    const rewriter = eval(wrapSnippet(extension, snippet));
+    mock({ [fileName]: code });
     rewriter.process();
-    return fs.readFileSync('code.js', 'utf-8');
+    return fs.readFileSync(fileName, 'utf-8');
   } finally {
     mock.restore();
   }
@@ -22,7 +23,7 @@ export const generateSnippet = (extension: string, inputs: string[], outputs: st
   return Magic.call(extension, inputs, outputs);
 }
 
-const wrapSnippet = (snippet: string): string => {
+const wrapSnippet = (extension: string, snippet: string): string => {
   const input = snippet.trim();
   if (input.startsWith("const Synvert = require('synvert-core')")) {
     return snippet;
@@ -37,15 +38,18 @@ const wrapSnippet = (snippet: string): string => {
     return `
       const Synvert = require("synvert-core")
       new Synvert.Rewriter("group", "name", () => {
+        configure({ parser: 'typescript' });
         ${snippet}
       });
     `;
   }
 
+  const fileConstant = ["ts", "tsx"].includes(extension) ? "ALL_TS_FILES" : "ALL_JS_FILES";
   return `
     const Synvert = require("synvert-core")
     new Synvert.Rewriter("group", "name", () => {
-      withinFiles(Synvert.ALL_JS_FILES, function () {
+      configure({ parser: 'typescript' });
+      withinFiles(Synvert.${fileConstant}, function () {
         ${snippet}
       });
     });
