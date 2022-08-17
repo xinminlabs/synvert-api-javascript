@@ -1,12 +1,13 @@
 import { SyntaxKind } from "typescript";
 import ConvertPattern from "./convert-pattern";
 import FindPattern from "./find-pattern";
+import { NqlOrRules } from "./types";
 import { parseCode } from "./utils";
 
 const SKIP_NODE_TYPE = "expression";
 
 class Analyzer {
-  constructor(private extension, private inputs: string[], private outputs: string[]) {}
+  constructor(private extension, private inputs: string[], private outputs: string[], private nqlOrRules: NqlOrRules) {}
 
   call() {
     let inputNodes = this.inputs.map(input => parseCode(this.extension, input));
@@ -17,7 +18,7 @@ class Analyzer {
     if (outputNodes.every(node => node.kind === SyntaxKind.ExpressionStatement)) {
       outputNodes = outputNodes.map(node => node[SKIP_NODE_TYPE]);
     }
-    return new FindPattern(inputNodes, outputNodes, (options) => {
+    return new FindPattern(inputNodes, outputNodes, this.nqlOrRules, (options) => {
       new ConvertPattern(options).call();
     }).call();
   }

@@ -1,11 +1,11 @@
 import { Node, SyntaxKind } from "typescript";
 import { KEYS } from "typescript-visitor-keys";
-import { ConvertPatternOptions } from "./types";
+import { ConvertPatternOptions, NqlOrRules } from "./types";
 import Builder, { BuilderNode } from "./builder";
 import { allArrays, allEqual, allNodes, allNodesEqual, allNodeTypeEqual, getNodeType, isNode } from "./utils";
 
 class FindPattern {
-  constructor(private inputNodes: Node[], private outputNodes: Node[], private convertFunc: (ConvertPatternOptions) => void) {}
+  constructor(private inputNodes: Node[], private outputNodes: Node[], private nqlOrRules: NqlOrRules, private convertFunc: (ConvertPatternOptions) => void) {}
 
   call(): string[] {
     if (!allNodeTypeEqual(this.inputNodes)) {
@@ -22,16 +22,29 @@ class FindPattern {
 
   private nodesPattern(inputNodes: Node[], outputNodes: Node[], builderNode: BuilderNode): void {
     const patterns = this.generatePatterns(inputNodes);
-    builderNode.addWithFindPattern(patterns, (findPatternNode) => {
-      findPatternNode.addSelective((selectiveNode) => {
-        this.convertFunc.call(this, {
-          inputNodes,
-          outputNodes,
-          builderNode: selectiveNode,
-          converterType: "findAndReplace",
+    if (this.nqlOrRules === NqlOrRules.nql) {
+      builderNode.addFindNodeFindPattern(patterns, (findPatternNode) => {
+        findPatternNode.addSelective((selectiveNode) => {
+          this.convertFunc.call(this, {
+            inputNodes,
+            outputNodes,
+            builderNode: selectiveNode,
+            converterType: "findAndReplace",
+          });
         });
       });
-    });
+    } else {
+      builderNode.addWithNodeFindPattern(patterns, (findPatternNode) => {
+        findPatternNode.addSelective((selectiveNode) => {
+          this.convertFunc.call(this, {
+            inputNodes,
+            outputNodes,
+            builderNode: selectiveNode,
+            converterType: "findAndReplace",
+          });
+        });
+      });
+    }
   }
 
   private generatePatterns(nodes: Node[]): any {

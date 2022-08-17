@@ -1,5 +1,6 @@
 import dedent from 'dedent';
 import { generateAst, parseSynvertSnippet, generateSnippet } from '../lib/api';
+import { NqlOrRules } from '../lib/magic/types';
 
 describe("genereteAst", () => {
   it("gets node from source code", () => {
@@ -95,12 +96,23 @@ describe("parseSynvertSnippet", () => {
 });
 
 describe("genereteSnippet", () => {
-  it("gets snippet", () => {
+  it("gets snippet with rules", () => {
     const extension = "ts";
     const inputs = ["$.isArray(foo)", "$.isArray(bar)"];
     const outputs = ["Array.isArray(foo)", "Array.isArray(bar)"];
-    expect(generateSnippet(extension, inputs, outputs)).toEqual(dedent`
+    expect(generateSnippet(extension, inputs, outputs, NqlOrRules.rules)).toEqual(dedent`
       withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { length: 1 } }, () => {
+        replaceWith("Array.{{expression.name}}({{arguments.0}})");
+      });
+    `);
+  });
+
+  it("gets snippet with nql", () => {
+    const extension = "ts";
+    const inputs = ["$.isArray(foo)", "$.isArray(bar)"];
+    const outputs = ["Array.isArray(foo)", "Array.isArray(bar)"];
+    expect(generateSnippet(extension, inputs, outputs, NqlOrRules.nql)).toEqual(dedent`
+      findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.length=1]\`, () => {
         replaceWith("Array.{{expression.name}}({{arguments.0}})");
       });
     `);

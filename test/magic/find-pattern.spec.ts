@@ -1,5 +1,6 @@
 import dedent from "dedent";
 import FindPattern from "../../lib/magic/find-pattern";
+import { NqlOrRules } from "../../lib/magic/types";
 import { parseJS } from "../test-helper";
 
 describe("FindPattern", () => {
@@ -7,9 +8,20 @@ describe("FindPattern", () => {
     it("finds pattern", () => {
       const inputNodes = [parseJS("$.isArray(foo)")["expression"], parseJS("$.isArray(bar)")["expression"]];
       const outputNodes = [parseJS("Array.isArray(foo)")["expression"], parseJS("Array.isArray(bar)")["expression"]];
-      const findPattern = new FindPattern(inputNodes, outputNodes, () => {});
+      const findPattern = new FindPattern(inputNodes, outputNodes, NqlOrRules.rules, () => {});
       const expected = dedent`
         withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { length: 1 } }, () => {
+        });
+      `;
+      expect(findPattern.call()).toEqual([expected]);
+    });
+
+    it("finds pattern with nql", () => {
+      const inputNodes = [parseJS("$.isArray(foo)")["expression"], parseJS("$.isArray(bar)")["expression"]];
+      const outputNodes = [parseJS("Array.isArray(foo)")["expression"], parseJS("Array.isArray(bar)")["expression"]];
+      const findPattern = new FindPattern(inputNodes, outputNodes, NqlOrRules.nql, () => {});
+      const expected = dedent`
+        findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.length=1]\`, () => {
         });
       `;
       expect(findPattern.call()).toEqual([expected]);
@@ -17,7 +29,7 @@ describe("FindPattern", () => {
   });
 
   describe("#generatePatterns", () => {
-    const findPattern = new FindPattern([], [], () => {});
+    const findPattern = new FindPattern([], [], NqlOrRules.rules, () => {});
 
     it("gets pattern", () => {
       const nodes = [parseJS("$.isArray(foo)")["expression"], parseJS("$.isArray(bar)")["expression"]];
@@ -35,7 +47,7 @@ describe("FindPattern", () => {
   });
 
   describe("#valueInPattern", () => {
-    const findPattern = new FindPattern([], [], () => {});
+    const findPattern = new FindPattern([], [], NqlOrRules.rules, () => {});
 
     it("get value for node", () => {
       const node = parseJS("$.isArray(foo)")["expression"];

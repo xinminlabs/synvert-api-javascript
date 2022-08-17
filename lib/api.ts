@@ -1,6 +1,7 @@
 import fs from 'fs';
 import mock from 'mock-fs';
 import Magic from "./magic";
+import { NqlOrRules } from './magic/types';
 import { getFileName, parseCode } from "./magic/utils";
 
 export const generateAst = (extension: string, code: string): any => {
@@ -19,8 +20,8 @@ export const parseSynvertSnippet = (extension: string, code: string, snippet: st
   }
 }
 
-export const generateSnippet = (extension: string, inputs: string[], outputs: string[]): string => {
-  return Magic.call(extension, inputs, outputs);
+export const generateSnippet = (extension: string, inputs: string[], outputs: string[], nqlOrRules = NqlOrRules.nql): string => {
+  return Magic.call(extension, inputs, outputs, nqlOrRules);
 }
 
 const wrapSnippet = (extension: string, snippet: string): string => {

@@ -31,7 +31,13 @@ export class BuilderNode {
     this.selected = true;
   }
 
-  addWithFindPattern(attributes: { [key: string]: any }, func: (BuilderNode) => void): void {
+  addFindNodeFindPattern(attributes: { [key: string]: object }, func: (BuilderNode) => void): void {
+    const node = new FindPatternFindNode(attributes, this.level + 1)
+    func.call(this, node);
+    this.addNode(node);
+  }
+
+  addWithNodeFindPattern(attributes: { [key: string]: object }, func: (BuilderNode) => void): void {
     const node = new FindPatternWithNode(attributes, this.level + 1)
     func.call(this, node);
     this.addNode(node);
@@ -93,8 +99,53 @@ class RootNode extends BuilderNode {
   }
 }
 
+class FindPatternFindNode extends BuilderNode {
+  constructor(private attributes: object, level: number) {
+    super();
+    this.attributes = attributes;
+    this.level = level;
+  }
+
+  generateSnippet(): string {
+    const pattern = this.generateAttributesPattern(this.attributes);
+    const result = [];
+    result.push(`findNode(\`${pattern}\`, () => {`);
+    const childrenPattern = this.generateChildrenPattern();
+    if (childrenPattern) {
+      result.push(childrenPattern);
+    }
+    result.push(`});`);
+    return result.map(line => " ".repeat(this.patternIndent()) + line).join("\n");
+  }
+
+  private generateAttributesPattern(attributes: object): string {
+    const nqlArray = [];
+    if (attributes["nodeType"]) {
+      nqlArray.push(`.${attributes["nodeType"]}`);
+      delete attributes["nodeType"]
+    }
+    Object.keys(attributes).forEach(key => {
+      const value = attributes[key];
+      if (key === "typeArguments" && value === undefined) {
+        // skip
+      } else if (typeof value === "object") {
+        if (value["nodeType"]) {
+          nqlArray.push(`[${key}=${this.generateAttributesPattern(value)}]`);
+        } else {
+          Object.keys(value).forEach(nestedKey => {
+            nqlArray.push(`[${key}.${nestedKey}=${value[nestedKey]}]`);
+          });
+        }
+      } else {
+        nqlArray.push(`[${key}=${value}]`);
+      }
+    })
+    return nqlArray.join("");
+  }
+}
+
 class FindPatternWithNode extends BuilderNode {
-  constructor(private attributes, level: number) {
+  constructor(private attributes: object, level: number) {
     super();
     this.attributes = attributes;
     this.level = level;

@@ -2,12 +2,38 @@ import dedent from "dedent";
 import Builder from "../../lib/magic/builder";
 
 describe("Builder", () => {
+  describe("#addFindNodePattern", () => {
+    it("returns findNode", () => {
+      const snippets = Builder.build((builderNode) => {
+        builderNode.addFindNodeFindPattern({
+          nodeType: "CallExpression",
+          expression: {
+            expression: "$",
+            name: "isArray",
+            nodeType: "PropertyAccessExpression",
+          },
+          arguments: { length: 1 }
+        }, () => {});
+      });
+      const expected = "findNode(`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.length=1]`, () => {\n});";
+      expect(snippets).toEqual([expected]);
+    });
+  });
+
   describe("#addWithNodePattern", () => {
     it("returns withNode", () => {
       const snippets = Builder.build((builderNode) => {
-        builderNode.addWithFindPattern({ key1: 'value1', key2: 'value2 '}, () => {});
+        builderNode.addWithNodeFindPattern({
+          nodeType: "CallExpression",
+          expression: {
+            expression: "$",
+            name: "isArray",
+            nodeType: "PropertyAccessExpression",
+          },
+          arguments: { length: 1 }
+        }, () => {});
       });
-      const expected = `withNode({ key1: "value1", key2: "value2 " }, () => {\n});`;
+      const expected = `withNode({ nodeType: "CallExpression", expression: { expression: "$", name: "isArray", nodeType: "PropertyAccessExpression" }, arguments: { length: 1 } }, () => {\n});`;
       expect(snippets).toEqual([expected]);
     });
   });
@@ -25,12 +51,12 @@ describe("Builder", () => {
   describe("composition", () => {
     it("gets patterns", () => {
       const snippets = Builder.build((builderNode) => {
-        builderNode.addWithFindPattern({ key1: 'value1', key2: 'value2 '}, (findNode) => {
+        builderNode.addWithNodeFindPattern({ key1: 'value1', key2: 'value2'}, (findNode) => {
           findNode.addConvertPattern(`replaceWith("jQuery.{{expression.expression.name}}");`);
         });
       });
       const expected = dedent`
-        withNode({ key1: "value1", key2: "value2 " }, () => {
+        withNode({ key1: "value1", key2: "value2" }, () => {
           replaceWith("jQuery.{{expression.expression.name}}");
         });
       `;
@@ -41,7 +67,7 @@ describe("Builder", () => {
   describe("#addSelective", () => {
     it("gets patterns", () => {
       const snippets = Builder.build((builderNode) => {
-        builderNode.addWithFindPattern({ key1: 'value1', key2: 'value2 '}, (findNode) => {
+        builderNode.addWithNodeFindPattern({ key1: 'value1', key2: 'value2'}, (findNode) => {
           findNode.addSelective((selectiveNode) => {
             selectiveNode.addConvertPattern(`replaceWith("$.{{expression.expression.name}}");`);
           });
@@ -51,12 +77,12 @@ describe("Builder", () => {
         });
       });
       const snippet1 = dedent`
-        withNode({ key1: "value1", key2: "value2 " }, () => {
+        withNode({ key1: "value1", key2: "value2" }, () => {
           replaceWith("$.{{expression.expression.name}}");
         });
       `;
       const snippet2 = dedent`
-        withNode({ key1: "value1", key2: "value2 " }, () => {
+        withNode({ key1: "value1", key2: "value2" }, () => {
           replaceWith("jQuery.{{expression.expression.name}}");
         });
       `;
