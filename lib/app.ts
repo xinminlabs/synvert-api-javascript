@@ -53,7 +53,7 @@ app.post('/parse-synvert-snippet', jsonParser, (req: Request, res: Response) => 
 });
 
 app.post('/generate-snippet', jsonParser, validateInputsOutputs, (req: Request, res: Response) => {
-  const snippet = generateSnippet(req.body.extension, req.body.inputs, req.body.outputs);
+  const snippet = generateSnippet(req.body.extension, req.body.inputs, req.body.outputs, req.body.nql_or_rules);
   res.json({ snippet });
 });
 
