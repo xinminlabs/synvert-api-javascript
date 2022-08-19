@@ -1,5 +1,12 @@
+import path from "path";
 import { KEYS } from "typescript-visitor-keys";
 import { createProgram, createSourceFile, Node, SyntaxKind, ScriptKind, ScriptTarget } from "typescript";
+import { NodeVM } from "vm2";
+
+export const runInVm = (script: string) => {
+  const vm = new NodeVM({ sandbox: global, require: { external: true }, eval: false });
+  vm.run(script, './vm.js');
+}
 
 export const getFileName = (extension: string): string => {
   return `code.${extension}`;

@@ -84,15 +84,6 @@ describe("parseSynvertSnippet", () => {
     const output = parseSynvertSnippet("js", code, snippet);
     expect(output).toEqual("'use strict'\nclass Synvert {}");
   });
-
-  it("raises error if snippet is invalid", () => {
-    const code = "class Synvert {}";
-    const snippet = `
-      const Synvert = require("synvert-core");
-      new Synvert.Rewriter("javascript", "use-strict", () => {
-    `;
-    expect(() => { parseSynvertSnippet("js", code, snippet) }).toThrow(SyntaxError);
-  });
 });
 
 describe("genereteSnippet", () => {
