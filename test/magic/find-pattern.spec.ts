@@ -60,7 +60,6 @@ describe("FindPattern", () => {
           "declarations": {
             "length": 1,
             "0": {
-              "exclamationToken": undefined,
               "initializer": undefined,
               "name": {
                 "nodeType": "Identifier",

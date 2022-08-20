@@ -2,7 +2,7 @@ import { Node } from "typescript";
 import { BuilderNode } from "../../../lib/magic/builder";
 import FindAndReplaceConverter from "../../../lib/magic/convert-pattern/find-and-replace-converter";
 import FakeNode from "../../../lib/magic/fake-node";
-import { parseJS } from "../../test-helper";
+import { parseJS, parseTS } from "../../test-helper";
 
 describe("FindAndReplaceConverter", () => {
   const converter = new FindAndReplaceConverter([], [], new BuilderNode());
@@ -20,6 +20,13 @@ describe("FindAndReplaceConverter", () => {
       const targetNode = parseJS("bar")["expression"];
       const names = converter["findNames"](node, targetNode);
       expect(names).toEqual(["arguments", "1"]);
+    });
+
+    it("gets names in declarations", () => {
+      const node = parseTS('const x: string[] = ["a", "b"]');
+      const targetNode = node["declarationList"]["declarations"][0]["initializer"]
+      const names = converter["findNames"](node, targetNode);
+      expect(names).toEqual(["declarationList", "declarations", "0", "initializer"]);
     });
   });
 
@@ -81,6 +88,16 @@ describe("FindAndReplaceConverter", () => {
       converter.call();
       expect(builderNode["children"].length).toEqual(1);
       expect(builderNode["children"][0].generateSnippet()).toEqual(`replaceWith("jQuery.{{expression.name}}({{arguments.0}})");`);
+    });
+
+    it("generates replaceWith snippet 2", () => {
+      const inputNodes = [parseTS("const x: Array<string> = ['a', 'b']"), parseTS("const y: Array<string> = ['c', 'd']")];
+      const outputNodes = [parseTS("const x: string[] = ['a', 'b']"), parseTS("const y: string[] = ['c', 'd']")];
+      const builderNode = new BuilderNode();
+      const converter = new FindAndReplaceConverter(inputNodes, outputNodes, builderNode);
+      converter.call();
+      expect(builderNode["children"].length).toEqual(1);
+      expect(builderNode["children"][0].generateSnippet()).toEqual(`replaceWith("const{{declarationList.declarations.0.name}}:{{declarationList.declarations.0.type.typeArguments.0}}[] ={{declarationList.declarations.0.initializer}}");`);
     });
   });
 });

@@ -1,3 +1,5 @@
+import { ignoredAttribute } from "./utils";
+
 class Builder {
   public root: RootNode;
 
@@ -126,7 +128,7 @@ class FindPatternFindNode extends BuilderNode {
     }
     Object.keys(attributes).forEach(key => {
       const value = attributes[key];
-      if (key === "typeArguments" && value === undefined) {
+      if (ignoredAttribute(key, value)) {
         // skip
       } else if (typeof value === "object") {
         if (value["nodeType"]) {
@@ -170,7 +172,7 @@ class FindPatternWithNode extends BuilderNode {
   private generateAttributesPattern(attributes: { [key: string]: any }): string {
     return Object.keys(attributes).map((key) => {
       const value = attributes[key];
-      if (key === "typeArguments" && value === undefined) {
+      if (ignoredAttribute(key, value)) {
         return;
       } else if (typeof value === "object") {
         return `${key}: { ${this.generateAttributesPattern(value)} }`;
