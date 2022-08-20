@@ -133,7 +133,11 @@ class FindPatternFindNode extends BuilderNode {
           nqlArray.push(`[${key}=${this.generateAttributesPattern(value)}]`);
         } else {
           Object.keys(value).forEach(nestedKey => {
-            nqlArray.push(`[${key}.${nestedKey}=${value[nestedKey]}]`);
+            if (value[nestedKey]["nodeType"]) {
+              nqlArray.push(`[${key}.${nestedKey}=${this.generateAttributesPattern(value[nestedKey])}]`);
+            } else {
+              nqlArray.push(`[${key}.${nestedKey}=${value[nestedKey]}]`);
+            }
           });
         }
       } else {

@@ -65,7 +65,7 @@ class FindPattern {
         pattern[key] = this.generatePatterns(values);
       } else if (allArrays(values) && allEqual(values.map(value => value.length))) {
         pattern[key] = { length: values[0].length };
-        for (let index = 0; index++; index < values[0].length) {
+        for (let index = 0; index < values[0].length; index++) {
           pattern[key][index] = this.generatePatterns(values.map(value => value[index]));
         }
       }

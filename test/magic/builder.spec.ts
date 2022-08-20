@@ -12,10 +12,15 @@ describe("Builder", () => {
             name: "isArray",
             nodeType: "PropertyAccessExpression",
           },
-          arguments: { length: 1 }
+          arguments: {
+            length: 1,
+            0: {
+              nodeType: "Identifier"
+            }
+          }
         }, () => {});
       });
-      const expected = "findNode(`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.length=1]`, () => {\n});";
+      const expected = "findNode(`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.0=.Identifier][arguments.length=1]`, () => {\n});";
       expect(snippets).toEqual([expected]);
     });
   });
@@ -30,10 +35,15 @@ describe("Builder", () => {
             name: "isArray",
             nodeType: "PropertyAccessExpression",
           },
-          arguments: { length: 1 }
+          arguments: {
+            length: 1,
+            0: {
+              nodeType: "Identifier"
+            }
+          }
         }, () => {});
       });
-      const expected = `withNode({ nodeType: "CallExpression", expression: { expression: "$", name: "isArray", nodeType: "PropertyAccessExpression" }, arguments: { length: 1 } }, () => {\n});`;
+      const expected = `withNode({ nodeType: "CallExpression", expression: { expression: "$", name: "isArray", nodeType: "PropertyAccessExpression" }, arguments: { 0: { nodeType: "Identifier" }, length: 1 } }, () => {\n});`;
       expect(snippets).toEqual([expected]);
     });
   });
