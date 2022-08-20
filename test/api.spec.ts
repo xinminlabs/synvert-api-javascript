@@ -92,7 +92,7 @@ describe("genereteSnippet", () => {
     const inputs = ["$.isArray(foo)", "$.isArray(bar)"];
     const outputs = ["Array.isArray(foo)", "Array.isArray(bar)"];
     expect(generateSnippet(extension, inputs, outputs, NqlOrRules.rules)).toEqual(dedent`
-      withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { length: 1 } }, () => {
+      withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { 0: { nodeType: "Identifier" }, length: 1 } }, () => {
         replaceWith("Array.{{expression.name}}({{arguments.0}})");
       });
     `);
@@ -103,7 +103,7 @@ describe("genereteSnippet", () => {
     const inputs = ["$.isArray(foo)", "$.isArray(bar)"];
     const outputs = ["Array.isArray(foo)", "Array.isArray(bar)"];
     expect(generateSnippet(extension, inputs, outputs, NqlOrRules.nql)).toEqual(dedent`
-      findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.length=1]\`, () => {
+      findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.0=.Identifier][arguments.length=1]\`, () => {
         replaceWith("Array.{{expression.name}}({{arguments.0}})");
       });
     `);

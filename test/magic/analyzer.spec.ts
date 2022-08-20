@@ -10,7 +10,7 @@ describe("Analyzer", () => {
         const outputs = ["Array.isArray(foo)", "Array.isArray(bar)"];
         const analyzer = new Analyzer("ts", inputs, outputs, NqlOrRules.rules);
         const expected = dedent`
-          withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { length: 1 } }, () => {
+          withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { 0: { nodeType: "Identifier" }, length: 1 } }, () => {
             replaceWith("Array.{{expression.name}}({{arguments.0}})");
           });
         `;
