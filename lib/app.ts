@@ -54,12 +54,16 @@ app.post('/parse-synvert-snippet', jsonParser, (req: Request, res: Response) => 
 
 app.post('/generate-snippet', jsonParser, validateInputsOutputs, (req: Request, res: Response) => {
   const snippet = generateSnippet(req.body.extension, req.body.inputs, req.body.outputs, req.body.nql_or_rules);
-  res.json({ snippet });
+  if (snippet) {
+    res.json({ snippet });
+  } else {
+    res.status(400).json({ error: 'Failed to generate the snippet!' });
+  }
 });
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   res.status(400).json({ error: err.message });
-})
+});
 
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at http://localhost:${port}`);

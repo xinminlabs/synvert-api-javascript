@@ -1,4 +1,3 @@
-import path from "path";
 import { KEYS } from "typescript-visitor-keys";
 import { createProgram, createSourceFile, Node, SyntaxKind, ScriptKind, ScriptTarget } from "typescript";
 import { NodeVM } from "vm2";
