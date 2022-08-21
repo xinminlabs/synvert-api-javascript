@@ -11,6 +11,14 @@ export const getFileName = (extension: string): string => {
   return `code.${extension}`;
 }
 
+export const getNodeRange = (node: Node): { start :number, end: number } => {
+  if (node.getFullText()[0] === " ") {
+    return { start: node.getFullStart() + 1, end: node.getEnd() };
+  } else {
+    return { start: node.getFullStart(), end: node.getEnd() };
+  }
+}
+
 export const parseCode = (extension: string, code: string, parent = true): Node => {
   const fileName = getFileName(extension);
   const scriptKind = getScriptKind(extension);

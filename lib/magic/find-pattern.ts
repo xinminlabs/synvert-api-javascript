@@ -77,7 +77,7 @@ class FindPattern {
     if (isNode(value)) {
       switch (value.kind) {
         case SyntaxKind.Identifier:
-          return value.getFullText();
+          return value["escapedText"];
         default:
           const inputType = getNodeType(value);
           const result = { nodeType: inputType };

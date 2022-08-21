@@ -97,7 +97,7 @@ describe("FindAndReplaceConverter", () => {
       const converter = new FindAndReplaceConverter(inputNodes, outputNodes, builderNode);
       converter.call();
       expect(builderNode["children"].length).toEqual(1);
-      expect(builderNode["children"][0].generateSnippet()).toEqual(`replaceWith("const{{declarationList.declarations.0.name}}:{{declarationList.declarations.0.type.typeArguments.0}}[] ={{declarationList.declarations.0.initializer}}");`);
+      expect(builderNode["children"][0].generateSnippet()).toEqual(`replaceWith("const {{declarationList.declarations.0.name}}: {{declarationList.declarations.0.type.typeArguments.0}}[] = {{declarationList.declarations.0.initializer}}");`);
     });
   });
 });

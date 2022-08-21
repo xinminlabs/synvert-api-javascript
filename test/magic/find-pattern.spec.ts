@@ -73,7 +73,7 @@ describe("FindPattern", () => {
                   },
                   "length": 1,
                 },
-                "typeName": " Array",
+                "typeName": "Array",
               },
             },
           },

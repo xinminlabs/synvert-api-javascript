@@ -2,7 +2,7 @@ import { Node } from "typescript";
 import { KEYS } from "typescript-visitor-keys";
 import BaseConverter from "./base-converter";
 import  FakeNode from "../fake-node";
-import { getNodeType, nodesEqual, isNode } from "../utils";
+import { getNodeType, nodesEqual, isNode, getNodeRange } from "../utils";
 
 class FindAndReplaceConverter extends BaseConverter {
   call() {
@@ -53,7 +53,7 @@ class FindAndReplaceConverter extends BaseConverter {
   private findAndReplace(node: Node, targetNode: Node, fakeNodeName: string): [boolean, FakeNode | Node | null] {
     const fakeNode = new FakeNode(`{{${fakeNodeName}}}`);
     if (nodesEqual(node, targetNode)) {
-      fakeNode.range = { start: targetNode.getFullStart(), end: targetNode.getEnd() };
+      fakeNode.range = getNodeRange(targetNode);
       return [true, fakeNode];
     }
     const names = this.findNames(node, targetNode)
@@ -114,7 +114,7 @@ class FindAndReplaceConverter extends BaseConverter {
   private deepUpdated(node: Node, names: string[], fakeNode: FakeNode): Node {
     const name = names.shift();
     if (names.length == 0) {
-      fakeNode.range = { start: node[name].getFullStart(), end: node[name].getEnd() };
+      fakeNode.range = getNodeRange(node[name]);
       node[name] = fakeNode;
     } else {
       node[name] = this.deepUpdated(node[name], names, fakeNode);
