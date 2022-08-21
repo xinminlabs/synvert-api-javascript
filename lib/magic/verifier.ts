@@ -1,3 +1,4 @@
+import debug from "debug";
 import fs from "fs";
 import mock from "mock-fs";
 import { Rewriter } from 'synvert-core';
@@ -26,7 +27,11 @@ class Verifier {
         const rewriter = Rewriter.rewriters["group"]["name"];
         mock({ [fileName]: input });
         rewriter.process();
-        return fs.readFileSync(fileName, "utf-8") == this.outputs[index];
+        const actualOutput = fs.readFileSync(fileName, "utf-8");
+        const expectedOutput = this.outputs[index];
+        debug("synvert-api:verifier")(`actualOutput: ${actualOutput}`);
+        debug("synvert-api:verifier")(`expectedOutput: ${expectedOutput}`);
+        return actualOutput === expectedOutput;
       });
     } finally {
       Rewriter.rewriters = {};
