@@ -57,7 +57,7 @@ export const nodesEqual = (node1: Node, node2: Node): boolean => {
 }
 
 export const ignoredAttribute = (key: string, value: any): boolean => {
-  return ["typeArguments", "singleQuote", "exclamationToken"].includes(key) && value === undefined;
+  return ["typeArguments", "exclamationToken"].includes(key) && value === undefined;
 }
 
 const valuesEqual = (value1: any, value2: any): boolean => {
