@@ -2,7 +2,7 @@ import { Node, SyntaxKind } from "typescript";
 import { KEYS } from "typescript-visitor-keys";
 import { ConvertPatternOptions, NqlOrRules } from "./types";
 import Builder, { BuilderNode } from "./builder";
-import { allArrays, allEqual, allNodes, allNodesEqual, allNodeTypeEqual, getNodeType, isNode } from "./utils";
+import { allArrays, allEqual, allNodes, allNodesEqual, allNodeTypeEqual, getChildKeys, getNodeType, isNode } from "./utils";
 
 class FindPattern {
   constructor(private inputNodes: Node[], private outputNodes: Node[], private nqlOrRules: NqlOrRules, private convertFunc: (ConvertPatternOptions) => void) {}
@@ -57,7 +57,7 @@ class FindPattern {
 
     const nodeType = getNodeType(nodes[0]);
     const pattern = { nodeType: nodeType };
-    KEYS[nodeType].forEach(key => {
+    getChildKeys(nodeType).forEach(key => {
       const values = nodes.map(node => node[key]);
       if (allEqual(values)) {
         pattern[key] = this.valueInPattern(values[0]);
@@ -81,7 +81,7 @@ class FindPattern {
         default:
           const inputType = getNodeType(value);
           const result = { nodeType: inputType };
-          KEYS[inputType].forEach(key => {
+          getChildKeys(inputType).forEach(key => {
             result[key] = this.valueInPattern(value[key]);
           });
           return result;

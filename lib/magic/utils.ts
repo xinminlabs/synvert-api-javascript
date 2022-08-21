@@ -1,6 +1,7 @@
 import { KEYS } from "typescript-visitor-keys";
 import { createProgram, createSourceFile, Node, SyntaxKind, ScriptKind, ScriptTarget } from "typescript";
 import { NodeVM } from "vm2";
+import { KeyNotFoundError } from "./error";
 
 export const runInVm = (script: string) => {
   const vm = new NodeVM({ sandbox: global, require: { external: true }, eval: false });
@@ -59,12 +60,20 @@ export const nodesEqual = (node1: Node, node2: Node): boolean => {
   if (nodeType === "Identifier") {
     return node1['escapedText'] === node2['escapedText'];
   } else {
-    return KEYS[nodeType].every(key => valuesEqual(node1[key], node2[key]));
+    return getChildKeys(nodeType).every(key => valuesEqual(node1[key], node2[key]));
   }
 }
 
 export const ignoredAttribute = (key: string, value: any): boolean => {
   return ["typeArguments", "exclamationToken"].includes(key) && value === undefined;
+}
+
+export const getChildKeys = (nodeType: string): string[] => {
+  const childKeys = KEYS[nodeType];
+  if (!childKeys) {
+    throw new KeyNotFoundError(`no child keys for ${nodeType}`);
+  }
+  return childKeys;
 }
 
 const valuesEqual = (value1: any, value2: any): boolean => {

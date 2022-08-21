@@ -2,7 +2,7 @@ import { Node } from "typescript";
 import { KEYS } from "typescript-visitor-keys";
 import BaseConverter from "./base-converter";
 import  FakeNode from "../fake-node";
-import { getNodeType, nodesEqual, isNode, getNodeRange } from "../utils";
+import { getNodeType, nodesEqual, isNode, getNodeRange, getChildKeys } from "../utils";
 
 class FindAndReplaceConverter extends BaseConverter {
   call() {
@@ -28,7 +28,7 @@ class FindAndReplaceConverter extends BaseConverter {
         }
       });
     } else if (isNode(inputNode)) {
-      KEYS[getNodeType(inputNode)].forEach(childKey => {
+      getChildKeys(getNodeType(inputNode)).forEach(childKey => {
         if (!(replacedNode instanceof FakeNode) && inputNode[childKey]) {
           const replaceKey = key ? `${key}.${childKey}` : childKey;
           const [found, result] = this.findAndReplace(replacedNode, inputNode[childKey], replaceKey);
@@ -91,7 +91,7 @@ class FindAndReplaceConverter extends BaseConverter {
       return [];
     }
 
-    for (let key of KEYS[getNodeType(node)]) {
+    for (let key of getChildKeys(getNodeType(node))) {
       if (nodesEqual(node[key], targetNode)) {
         return [key];
       }

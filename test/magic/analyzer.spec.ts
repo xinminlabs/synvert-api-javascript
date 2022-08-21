@@ -51,5 +51,19 @@ describe("Analyzer", () => {
         expect(analyzer.call()).toEqual([expected]);
       });
     });
+
+    describe("ts multiple types", () => {
+      it("gets pattern", () => {
+        const inputs = [`const x: Array<string | number> = ['a', 'b'];`, `const y: Array<string | number> = ['c', 'd'];`];
+        const outputs = [`const x: (string | number)[] = ['a', 'b'];`, `const y: (string | number)[] = ['c', 'd'];`];
+        const analyzer = new Analyzer("ts", inputs, outputs, NqlOrRules.rules);
+        const expected = dedent`
+          withNode({ nodeType: "FirstStatement", declarationList: { nodeType: "VariableDeclarationList", declarations: { 0: { nodeType: "VariableDeclaration", name: { nodeType: "Identifier" }, initializer: { nodeType: "ArrayLiteralExpression", elements: { 0: { nodeType: "StringLiteral" }, 1: { nodeType: "StringLiteral" }, length: 2 } }, type: { nodeType: "TypeReference", typeName: "Array", typeArguments: { 0: { nodeType: "UnionType", types: { 0: { nodeType: "StringKeyword" }, 1: { nodeType: "NumberKeyword" }, length: 2 } }, length: 1 } } }, length: 1 } } }, () => {
+            replaceWith("const {{declarationList.declarations.0.name}}: ({{declarationList.declarations.0.type.typeArguments.0}})[] = {{declarationList.declarations.0.initializer}};");
+          });
+        `;
+        expect(analyzer.call()).toEqual([expected]);
+      });
+    });
   });
 });
