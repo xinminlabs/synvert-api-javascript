@@ -33,7 +33,7 @@
     "mock-fs": "^5.1.2",
     "morgan": "^1.10.0",
     "synvert-core": "^1.6.0",
-    "typescript-visitor-keys": "^0.2.2",
+    "typescript-visitor-keys": "^0.2.3",
     "vm2": "^3.9.10"
   }
 }
