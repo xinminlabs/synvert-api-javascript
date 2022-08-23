@@ -1,7 +1,7 @@
 import { Node, SyntaxKind } from "typescript";
 import { ConvertPatternOptions, NqlOrRules } from "./types";
 import Builder, { BuilderNode } from "./builder";
-import { allArrays, allEqual, allNodes, allNodesEqual, allNodeTypeEqual, getChildKeys, getNodeType, isNode } from "./utils";
+import { allArrays, allEqual, allNodes, allNodesEqual, allNodeTypeEqual, getChildKeys, getNodeType, getSource, isNode } from "./utils";
 
 class FindPattern {
   constructor(private inputNodes: Node[], private outputNodes: Node[], private nqlOrRules: NqlOrRules, private convertFunc: (ConvertPatternOptions) => void) {}
@@ -77,6 +77,8 @@ class FindPattern {
       switch (value.kind) {
         case SyntaxKind.Identifier:
           return value["escapedText"];
+        case SyntaxKind.JsxText:
+          return getSource(value);
         default:
           const inputType = getNodeType(value);
           const result = { nodeType: inputType };

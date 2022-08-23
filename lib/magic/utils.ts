@@ -19,6 +19,10 @@ export const getNodeRange = (node: Node): { start :number, end: number } => {
   return { start: typescriptAdapter.getStart(node), end: typescriptAdapter.getEnd(node) };
 }
 
+export const getSource = (node: Node): string => {
+  return typescriptAdapter.getSource(node);
+}
+
 export const parseCode = (extension: string, code: string, parent = true): Node => {
   const fileName = getFileName(extension);
   const scriptKind = getScriptKind(extension);
