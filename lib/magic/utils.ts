@@ -2,6 +2,7 @@ import { KEYS } from "typescript-visitor-keys";
 import { createProgram, createSourceFile, Node, SyntaxKind, ScriptKind, ScriptTarget } from "typescript";
 import { NodeVM } from "vm2";
 import { KeyNotFoundError } from "./error";
+import { TypescriptAdapter } from "@xinminlabs/node-mutation"
 
 export const runInVm = (script: string) => {
   const vm = new NodeVM({ sandbox: global, require: { external: true }, eval: false });
@@ -12,12 +13,10 @@ export const getFileName = (extension: string): string => {
   return `code.${extension}`;
 }
 
+const typescriptAdapter = new TypescriptAdapter();
+
 export const getNodeRange = (node: Node): { start :number, end: number } => {
-  if (node.getFullText()[0] === " ") {
-    return { start: node.getFullStart() + 1, end: node.getEnd() };
-  } else {
-    return { start: node.getFullStart(), end: node.getEnd() };
-  }
+  return { start: typescriptAdapter.getStart(node), end: typescriptAdapter.getEnd(node) };
 }
 
 export const parseCode = (extension: string, code: string, parent = true): Node => {
