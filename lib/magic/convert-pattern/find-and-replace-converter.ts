@@ -1,7 +1,7 @@
 import { Node } from "typescript";
 import BaseConverter from "./base-converter";
 import  FakeNode from "../fake-node";
-import { getNodeType, nodesEqual, isNode, getNodeRange, getChildKeys } from "../utils";
+import { getNodeType, nodesEqual, isNode, getNodeRange, getChildKeys, escapeString } from "../utils";
 
 class FindAndReplaceConverter extends BaseConverter {
   call() {
@@ -10,7 +10,7 @@ class FindAndReplaceConverter extends BaseConverter {
 
     const replacedNode = this.replaceNode(firstOutputNode, firstInputNode);
     const newStr = this.generateSourceCode(replacedNode);
-    this.builderNode.addConvertPattern(`replaceWith("${newStr}");`);
+    this.builderNode.addConvertPattern(`replaceWith(${escapeString(newStr)});`);
   }
 
   private replaceNode(replacedNode: Node | FakeNode, inputNode: Node | Node[], key?: string): Node | FakeNode {
