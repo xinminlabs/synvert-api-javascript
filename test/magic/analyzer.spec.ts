@@ -22,16 +22,18 @@ describe("Analyzer", () => {
       it("gets pattern", () => {
         const inputs = [dedent`
           <div className="container-fluid">
+            foobar
           </div>
         `];
         const outputs = [dedent`
           <Container fluid>
+            foobar
           </Container>
         `];
         const analyzer = new Analyzer("tsx", inputs, outputs, NqlOrRules.rules);
         const expected = dedent`
-          withNode({ nodeType: "JsxElement", openingElement: { nodeType: "JsxOpeningElement", tagName: "div", attributes: { nodeType: "JsxAttributes", properties: { 0: { nodeType: "JsxAttribute", name: "className", initializer: { nodeType: "StringLiteral", text: "container-fluid" } }, length: 1 } } }, children: { 0: { nodeType: "JsxText", text: "\n" }, length: 1 }, closingElement: { nodeType: "JsxClosingElement", tagName: "div" } }, () => {
-            replaceWith("<Container fluid>{{children.0}}</Container>");
+          withNode({ nodeType: "JsxElement", openingElement: { nodeType: "JsxOpeningElement", tagName: "div", attributes: { nodeType: "JsxAttributes", properties: { 0: { nodeType: "JsxAttribute", name: "className", initializer: { nodeType: "StringLiteral", text: "container-fluid" } }, length: 1 } } }, children: { 0: { nodeType: "JsxText", text: "\n  foobar\n" }, length: 1 }, closingElement: { nodeType: "JsxClosingElement", tagName: "div" } }, () => {
+            replaceWith("<Container fluid>\n  {{children.0}}\n</Container>");
           });
         `;
         expect(analyzer.call()).toEqual([expected]);
