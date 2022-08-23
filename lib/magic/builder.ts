@@ -143,7 +143,11 @@ class FindPatternFindNode extends BuilderNode {
           });
         }
       } else {
-        nqlArray.push(`[${key}=${value}]`);
+        if (typeof value === "string" && value.includes("-")) {
+          nqlArray.push(`[${key}="${value}"]`);
+        } else {
+          nqlArray.push(`[${key}=${value}]`);
+        }
       }
     })
     return nqlArray.join("");
