@@ -1,5 +1,4 @@
 import { Node } from "typescript";
-import { KEYS } from "typescript-visitor-keys";
 import BaseConverter from "./base-converter";
 import  FakeNode from "../fake-node";
 import { getNodeType, nodesEqual, isNode, getNodeRange, getChildKeys } from "../utils";

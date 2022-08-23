@@ -1,5 +1,4 @@
 import { Node, SyntaxKind } from "typescript";
-import { KEYS } from "typescript-visitor-keys";
 import { ConvertPatternOptions, NqlOrRules } from "./types";
 import Builder, { BuilderNode } from "./builder";
 import { allArrays, allEqual, allNodes, allNodesEqual, allNodeTypeEqual, getChildKeys, getNodeType, isNode } from "./utils";
