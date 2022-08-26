@@ -62,6 +62,7 @@ app.post('/generate-snippet', jsonParser, validateInputsOutputs, (req: Request, 
 });
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.log(err)
   res.status(400).json({ error: err.message });
 });
 
