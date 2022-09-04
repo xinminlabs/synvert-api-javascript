@@ -104,11 +104,9 @@ const valuesEqual = (value1: any, value2: any): boolean => {
 const getScriptKind = (extension: string): ScriptKind => {
   switch (extension) {
     case "ts":
-      return ScriptKind.TS;
     case "tsx":
       return ScriptKind.TSX;
     case "js":
-      return ScriptKind.JS;
     case "jsx":
       return ScriptKind.JSX;
       default:
