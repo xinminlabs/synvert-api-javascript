@@ -1,8 +1,8 @@
 import { ConvertPatternOptions } from "./types";
-import FindAndReplaceConverter from "./convert-pattern/find-and-replace-converter"
+import FindAndReplaceWithConverter from "./convert-pattern/find-and-replace-with-converter"
 
 const PATTERNS = {
-  findAndReplace: FindAndReplaceConverter,
+  findAndReplaceWith: FindAndReplaceWithConverter,
 }
 
 class ConvertPattern {

@@ -3,7 +3,7 @@ import BaseConverter from "./base-converter";
 import  FakeNode from "../fake-node";
 import { getNodeType, nodesEqual, isNode, getNodeRange, getChildKeys, escapeString } from "../utils";
 
-class FindAndReplaceConverter extends BaseConverter {
+class FindAndReplaceWithConverter extends BaseConverter {
   call() {
     const firstInputNode = this.inputNodes[0];
     const firstOutputNode = this.outputNodes[0];
@@ -18,7 +18,7 @@ class FindAndReplaceConverter extends BaseConverter {
       inputNode.forEach((inputChildNode, index) => {
         if (!(replacedNode instanceof FakeNode)) {
           const replaceKey = key ? `${key}.${index}` : index.toString();
-          const [found, result] = this.findAndReplace(replacedNode, inputChildNode, replaceKey);
+          const [found, result] = this.findAndReplaceWith(replacedNode, inputChildNode, replaceKey);
           if (found) {
             replacedNode = result;
           } else {
@@ -30,7 +30,7 @@ class FindAndReplaceConverter extends BaseConverter {
       getChildKeys(getNodeType(inputNode)).forEach(childKey => {
         if (!(replacedNode instanceof FakeNode) && inputNode[childKey]) {
           const replaceKey = key ? `${key}.${childKey}` : childKey;
-          const [found, result] = this.findAndReplace(replacedNode, inputNode[childKey], replaceKey);
+          const [found, result] = this.findAndReplaceWith(replacedNode, inputNode[childKey], replaceKey);
           if (found) {
             replacedNode = result;
           } else {
@@ -49,7 +49,7 @@ class FindAndReplaceConverter extends BaseConverter {
    * @param fakeNodeName {string} fake node name
    * @returns {[boolean, FakeNode|Node|null]} [found, replaced node]
    */
-  private findAndReplace(node: Node, targetNode: Node, fakeNodeName: string): [boolean, FakeNode | Node | null] {
+  private findAndReplaceWith(node: Node, targetNode: Node, fakeNodeName: string): [boolean, FakeNode | Node | null] {
     const fakeNode = new FakeNode(`{{${fakeNodeName}}}`);
     if (nodesEqual(node, targetNode)) {
       fakeNode.range = getNodeRange(targetNode);
@@ -156,4 +156,4 @@ class FindAndReplaceConverter extends BaseConverter {
   }
 }
 
-export default FindAndReplaceConverter;
+export default FindAndReplaceWithConverter;

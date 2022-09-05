@@ -1,11 +1,11 @@
 import { Node } from "typescript";
 import { BuilderNode } from "../../../lib/magic/builder";
-import FindAndReplaceConverter from "../../../lib/magic/convert-pattern/find-and-replace-converter";
+import FindAndReplaceWithConverter from "../../../lib/magic/convert-pattern/find-and-replace-with-converter";
 import FakeNode from "../../../lib/magic/fake-node";
 import { parseJS, parseTS } from "../../test-helper";
 
-describe("FindAndReplaceConverter", () => {
-  const converter = new FindAndReplaceConverter([], [], new BuilderNode());
+describe("FindAndReplaceWithConverter", () => {
+  const converter = new FindAndReplaceWithConverter([], [], new BuilderNode());
 
   describe("#findNames", () => {
     it("gets names", () => {
@@ -59,11 +59,11 @@ describe("FindAndReplaceConverter", () => {
     });
   });
 
-  describe("#findAndReplace", () => {
+  describe("#findAndReplaceWith", () => {
     it("found if replaced node and target node are same", () => {
       const replacedNode = parseJS("$.isArray")["expression"];
       const targetNode = parseJS("$.isArray")["expression"];
-      const [found, fakeNode] = converter["findAndReplace"](replacedNode, targetNode, "expression");
+      const [found, fakeNode] = converter["findAndReplaceWith"](replacedNode, targetNode, "expression");
       expect(found).toBeTruthy();
       expect(fakeNode).toBeInstanceOf(FakeNode);
       expect((fakeNode as FakeNode).name).toEqual("{{expression}}");
@@ -72,7 +72,7 @@ describe("FindAndReplaceConverter", () => {
     it("found if target node is a sub target of replaced node", () => {
       const replacedNode = parseJS("$.isArray")["expression"];
       const targetNode = parseJS("isArray")["expression"];
-      const [found, fakeNode] = converter["findAndReplace"](replacedNode, targetNode, "expression.name");
+      const [found, fakeNode] = converter["findAndReplaceWith"](replacedNode, targetNode, "expression.name");
       expect(found).toBeTruthy();
       expect(fakeNode).not.toBeInstanceOf(FakeNode);
       expect((fakeNode as Node)["name"]).toBeInstanceOf(FakeNode);
@@ -84,7 +84,7 @@ describe("FindAndReplaceConverter", () => {
       const inputNodes = [parseJS("$.isArray(foo)")["expression"], parseJS("$.isArray(bar)")["expression"]];
       const outputNodes = [parseJS("jQuery.isArray(foo)")["expression"], parseJS("jQuery.isArray(bar)")["expression"]];
       const builderNode = new BuilderNode();
-      const converter = new FindAndReplaceConverter(inputNodes, outputNodes, builderNode);
+      const converter = new FindAndReplaceWithConverter(inputNodes, outputNodes, builderNode);
       converter.call();
       expect(builderNode["children"].length).toEqual(1);
       expect(builderNode["children"][0].generateSnippet()).toEqual(`replaceWith("jQuery.{{expression.name}}({{arguments.0}})");`);
@@ -94,7 +94,7 @@ describe("FindAndReplaceConverter", () => {
       const inputNodes = [parseTS("const x: Array<string> = ['a', 'b']"), parseTS("const y: Array<string> = ['c', 'd']")];
       const outputNodes = [parseTS("const x: string[] = ['a', 'b']"), parseTS("const y: string[] = ['c', 'd']")];
       const builderNode = new BuilderNode();
-      const converter = new FindAndReplaceConverter(inputNodes, outputNodes, builderNode);
+      const converter = new FindAndReplaceWithConverter(inputNodes, outputNodes, builderNode);
       converter.call();
       expect(builderNode["children"].length).toEqual(1);
       expect(builderNode["children"][0].generateSnippet()).toEqual(`replaceWith("const {{declarationList.declarations.0.name}}: {{declarationList.declarations.0.type.typeArguments.0}}[] = {{declarationList.declarations.0.initializer}}");`);

@@ -28,7 +28,7 @@ class FindPattern {
             inputNodes,
             outputNodes,
             builderNode: selectiveNode,
-            converterType: "findAndReplace",
+            converterType: "findAndReplaceWith",
           });
         });
       });
@@ -39,7 +39,7 @@ class FindPattern {
             inputNodes,
             outputNodes,
             builderNode: selectiveNode,
-            converterType: "findAndReplace",
+            converterType: "findAndReplaceWith",
           });
         });
       });
