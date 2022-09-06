@@ -11,7 +11,7 @@ describe("Magic", () => {
       const snippet = Magic.call(extension, inputs, outputs, NqlOrRules.rules);
       expect(snippet).toEqual(dedent`
         withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { 0: { nodeType: "Identifier" }, length: 1 } }, () => {
-          replaceWith("Array.{{expression.name}}({{arguments.0}})");
+          replace("expression.expression", { with: "Array" });
         });
       `);
     });
@@ -23,7 +23,7 @@ describe("Magic", () => {
       const snippet = Magic.call(extension, inputs, outputs, NqlOrRules.rules);
       expect(snippet).toEqual(dedent`
         withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { 0: { nodeType: "Identifier" }, length: 1 } }, () => {
-          replaceWith("Array.{{expression.name}}({{arguments.0}})");
+          replace("expression.expression", { with: "Array" });
         });
       `);
     });
@@ -35,7 +35,7 @@ describe("Magic", () => {
       const snippet = Magic.call(extension, inputs, outputs, NqlOrRules.nql);
       expect(snippet).toEqual(dedent`
         findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.0=.Identifier][arguments.length=1]\`, () => {
-          replaceWith("Array.{{expression.name}}({{arguments.0}})");
+          replace("expression.expression", { with: "Array" });
         });
       `);
     });
@@ -47,7 +47,7 @@ describe("Magic", () => {
       const snippet = Magic.call(extension, inputs, outputs, NqlOrRules.rules);
       expect(snippet).toEqual(dedent`
         withNode({ nodeType: "FirstStatement", declarationList: { nodeType: "VariableDeclarationList", declarations: { 0: { nodeType: "VariableDeclaration", name: { nodeType: "Identifier" }, initializer: { nodeType: "ArrayLiteralExpression", elements: { 0: { nodeType: "StringLiteral" }, 1: { nodeType: "StringLiteral" }, length: 2 } }, type: { nodeType: "TypeReference", typeName: "Array", typeArguments: { 0: { nodeType: "StringKeyword" }, length: 1 } } }, length: 1 } } }, () => {
-          replaceWith("const {{declarationList.declarations.0.name}}: {{declarationList.declarations.0.type.typeArguments.0}}[] = {{declarationList.declarations.0.initializer}};");
+          replace("declarationList.declarations.0.type", { with: "string[]" });
         });
       `);
     });

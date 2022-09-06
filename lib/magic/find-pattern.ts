@@ -23,23 +23,27 @@ class FindPattern {
     const patterns = this.generatePatterns(inputNodes);
     if (this.nqlOrRules === NqlOrRules.nql) {
       builderNode.addFindNodeFindPattern(patterns, (findPatternNode) => {
-        findPatternNode.addSelective((selectiveNode) => {
-          this.convertFunc.call(this, {
-            inputNodes,
-            outputNodes,
-            builderNode: selectiveNode,
-            converterType: "findAndReplaceWith",
+        ["findAndReplace", "findAndReplaceWith"].forEach(converterType => {
+          findPatternNode.addSelective((selectiveNode) => {
+            this.convertFunc.call(this, {
+              inputNodes,
+              outputNodes,
+              builderNode: selectiveNode,
+              converterType,
+            });
           });
         });
       });
     } else {
       builderNode.addWithNodeFindPattern(patterns, (findPatternNode) => {
-        findPatternNode.addSelective((selectiveNode) => {
-          this.convertFunc.call(this, {
-            inputNodes,
-            outputNodes,
-            builderNode: selectiveNode,
-            converterType: "findAndReplaceWith",
+        ["findAndReplace", "findAndReplaceWith"].forEach(converterType => {
+          findPatternNode.addSelective((selectiveNode) => {
+            this.convertFunc.call(this, {
+              inputNodes,
+              outputNodes,
+              builderNode: selectiveNode,
+              converterType,
+            });
           });
         });
       });

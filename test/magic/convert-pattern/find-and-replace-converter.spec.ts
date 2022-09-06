@@ -1,103 +1,86 @@
-import { Node } from "typescript";
 import { BuilderNode } from "../../../lib/magic/builder";
-import FindAndReplaceWithConverter from "../../../lib/magic/convert-pattern/find-and-replace-with-converter";
-import FakeNode from "../../../lib/magic/fake-node";
-import { parseJS, parseTS } from "../../test-helper";
+import FindAndReplaceConverter from "../../../lib/magic/convert-pattern/find-and-replace-converter";
+import { parseJS, parseJSX, parseTS } from "../../test-helper";
 
-describe("FindAndReplaceWithConverter", () => {
-  const converter = new FindAndReplaceWithConverter([], [], new BuilderNode());
+describe("FindAndReplaceConverter", () => {
+  const converter = new FindAndReplaceConverter([], [], new BuilderNode());
 
-  describe("#findNames", () => {
-    it("gets names", () => {
-      const node = parseJS("$.isArray")["expression"];
-      const targetNode = parseJS("isArray")["expression"];
-      const names = converter["findNames"](node, targetNode);
-      expect(names).toEqual(["name"]);
-    });
-
-    it("gets names in arguments", () => {
-      const node = parseJS("$.isArray(foo, bar)")["expression"];
-      const targetNode = parseJS("bar")["expression"];
-      const names = converter["findNames"](node, targetNode);
-      expect(names).toEqual(["arguments", "1"]);
-    });
-
-    it("gets names in declarations", () => {
-      const node = parseTS('const x: string[] = ["a", "b"]');
-      const targetNode = node["declarationList"]["declarations"][0]["initializer"]
-      const names = converter["findNames"](node, targetNode);
-      expect(names).toEqual(["declarationList", "declarations", "0", "initializer"]);
+  describe("#generateReplacePatterns", () => {
+    it("generates patterns", () => {
+      converter["addReplaceResult"]("arguments", '("foo", "bar")');
+      converter["addReplaceResult"]("arguments.0", '"foo"');
+      converter["addReplaceResult"]("arguments.1", '"bar"');
+      converter["addReplaceResult"]("expression.expression", "$");
+      converter["addReplaceResult"]("expression.name", "isArray");
+      const patterns = converter["generateReplacePatterns"]();
+      expect(patterns).toEqual([
+        `replace("arguments", { with: "(\"foo\", \"bar\")" });`,
+        `replace("expression.expression", { with: "$" });`,
+        `replace("expression.name", { with: "isArray" });`,
+      ]);
     });
   });
 
-  describe("#deepUpdated", () => {
-    it("updates node by names", () => {
-      const node = parseJS("$.isArray(foo)")["expression"];
-      const fakeNode = new FakeNode("foobar");
-      converter["deepUpdated"](node, ["expression", "expression"], fakeNode);
-      expect(node["expression"]["expression"]).toBeInstanceOf(FakeNode);
-    });
-  });
-
-  describe("#getAllFakeNodes", () => {
-    it("get all fake nodes", () => {
-      const node = parseJS("$.isArray(foo)")["expression"];
-      const fakeNode = new FakeNode("foobar");
-      converter["deepUpdated"](node, ["expression", "expression"], fakeNode);
-      const allFakeNodes = converter["getAllFakeNodes"](node);
-      expect(allFakeNodes).toEqual([fakeNode]);
-    });
-  });
-
-  describe("#generateSourceCode", () => {
-    it("generates source code", () => {
-      const node = parseJS("$.isArray(foo)")["expression"];
-      const fakeNode = new FakeNode("{{expression.name}}");
-      converter["deepUpdated"](node, ["expression", "name"], fakeNode);
-      const sourceCode = converter["generateSourceCode"](node);
-      expect(sourceCode).toEqual("$.{{expression.name}}(foo)");
-    });
-  });
-
-  describe("#findAndReplaceWith", () => {
-    it("found if replaced node and target node are same", () => {
-      const replacedNode = parseJS("$.isArray")["expression"];
-      const targetNode = parseJS("$.isArray")["expression"];
-      const [found, fakeNode] = converter["findAndReplaceWith"](replacedNode, targetNode, "expression");
-      expect(found).toBeTruthy();
-      expect(fakeNode).toBeInstanceOf(FakeNode);
-      expect((fakeNode as FakeNode).name).toEqual("{{expression}}");
+  describe("#replaceNode", () => {
+    it("is all children replaced", () => {
+      const inputNode = parseJS("$.array(foo)")["expression"]
+      const outputNode = parseJS("Array.isArray(bar)")["expression"]
+      const allChildrenReplaced = converter["replaceNode"](inputNode, outputNode)
+      expect(allChildrenReplaced).toBeTruthy();
     });
 
-    it("found if target node is a sub target of replaced node", () => {
-      const replacedNode = parseJS("$.isArray")["expression"];
-      const targetNode = parseJS("isArray")["expression"];
-      const [found, fakeNode] = converter["findAndReplaceWith"](replacedNode, targetNode, "expression.name");
-      expect(found).toBeTruthy();
-      expect(fakeNode).not.toBeInstanceOf(FakeNode);
-      expect((fakeNode as Node)["name"]).toBeInstanceOf(FakeNode);
+    it("is all children replaced for array", () => {
+      const inputNode = parseJS("$.array(foo, bar)")["expression"]["arguments"]
+      const outputNode = parseJS("Array.isArray(bar, foo)")["expression"]["arguments"]
+      const allChildrenReplaced = converter["replaceNode"](inputNode, outputNode)
+      expect(allChildrenReplaced).toBeTruthy();
+    });
+
+    it("is not all children replaced", () => {
+      const inputNode = parseJS("$.isArray(foo)")["expression"]
+      const outputNode = parseJS("Array.isArray(bar)")["expression"]
+      const allChildrenReplaced = converter["replaceNode"](inputNode, outputNode)
+      expect(allChildrenReplaced).toBeFalsy();
+    });
+
+    it("is not all children replaced for array", () => {
+      const inputNode = parseJS("$.isArray(foo, foo)")["expression"]["arguments"]
+      const outputNode = parseJS("Array.isArray(foo, bar)")["expression"]["arguments"]
+      const allChildrenReplaced = converter["replaceNode"](inputNode, outputNode)
+      expect(allChildrenReplaced).toBeFalsy();
     });
   });
 
   describe("#call", () => {
-    it("generates replaceWith snippet", () => {
-      const inputNodes = [parseJS("$.isArray(foo)")["expression"], parseJS("$.isArray(bar)")["expression"]];
-      const outputNodes = [parseJS("jQuery.isArray(foo)")["expression"], parseJS("jQuery.isArray(bar)")["expression"]];
+    it("generates replace snippet", () => {
+      const inputNodes = [parseJS(`$.isArray(foo)`)["expression"], parseJS(`$.isArray(bar)`)["expression"]];
+      const outputNodes = [parseJS(`Array.isArray(foo)`)["expression"], parseJS(`Array.isArray(bar)`)["expression"]];
       const builderNode = new BuilderNode();
-      const converter = new FindAndReplaceWithConverter(inputNodes, outputNodes, builderNode);
+      const converter = new FindAndReplaceConverter(inputNodes, outputNodes, builderNode);
       converter.call();
       expect(builderNode["children"].length).toEqual(1);
-      expect(builderNode["children"][0].generateSnippet()).toEqual(`replaceWith("jQuery.{{expression.name}}({{arguments.0}})");`);
+      expect(builderNode["children"][0].generateSnippet()).toEqual(`replace("expression.expression", { with: "Array" });`);
     });
 
-    it("generates replaceWith snippet 2", () => {
-      const inputNodes = [parseTS("const x: Array<string> = ['a', 'b']"), parseTS("const y: Array<string> = ['c', 'd']")];
-      const outputNodes = [parseTS("const x: string[] = ['a', 'b']"), parseTS("const y: string[] = ['c', 'd']")];
+    it("generates replace snippet 2", () => {
+      const inputNodes = [parseJSX(`<div className="container-fluid">foo</div>`)["expression"], parseJSX(`<div className="container-fluid">bar</div>`)["expression"]];
+      const outputNodes = [parseJSX(`<Container fluid>foo</Container>`)["expression"], parseJSX(`<Container fluid>bar</Container>`)["expression"]];
       const builderNode = new BuilderNode();
-      const converter = new FindAndReplaceWithConverter(inputNodes, outputNodes, builderNode);
+      const converter = new FindAndReplaceConverter(inputNodes, outputNodes, builderNode);
+      converter.call();
+      expect(builderNode["children"].length).toEqual(2);
+      expect(builderNode["children"][0].generateSnippet()).toEqual(`replace("closingElement", { with: "</Container>" });`);
+      expect(builderNode["children"][1].generateSnippet()).toEqual(`replace("openingElement", { with: "<Container fluid>" });`);
+    });
+
+    it("generates replace snippet 3", () => {
+      const inputNodes = [parseTS(`const x: Array<string> = ['a', 'b']`), parseTS(`const y: Array<string> = ['c', 'd']`)];
+      const outputNodes = [parseTS(`const x: string[] = ['a', 'b']`), parseTS(`const y: string[] = ['c', 'd']`)];
+      const builderNode = new BuilderNode();
+      const converter = new FindAndReplaceConverter(inputNodes, outputNodes, builderNode);
       converter.call();
       expect(builderNode["children"].length).toEqual(1);
-      expect(builderNode["children"][0].generateSnippet()).toEqual(`replaceWith("const {{declarationList.declarations.0.name}}: {{declarationList.declarations.0.type.typeArguments.0}}[] = {{declarationList.declarations.0.initializer}}");`);
+      expect(builderNode["children"][0].generateSnippet()).toEqual(`replace("declarationList.declarations.0.type", { with: "string[]" });`);
     });
   });
 });

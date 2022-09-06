@@ -1,7 +1,7 @@
 import { Node } from "typescript";
 import BaseConverter from "./base-converter";
 import  FakeNode from "../fake-node";
-import { getNodeType, nodesEqual, isNode, getNodeRange, getChildKeys, escapeString } from "../utils";
+import { getNodeType, nodesEqual, isNode, getNodeRange, getChildKeys, escapeString, getSource } from "../utils";
 
 class FindAndReplaceWithConverter extends BaseConverter {
   call() {
@@ -131,7 +131,7 @@ class FindAndReplaceWithConverter extends BaseConverter {
       return node.name;
     }
 
-    let sourceCode = node.getFullText();
+    let sourceCode = getSource(node);
     this.getAllFakeNodes(node).reverse().forEach(fakeNode => {
       sourceCode = sourceCode.substring(0, fakeNode.range.start) + fakeNode.name + sourceCode.substring(fakeNode.range.end);
     });
