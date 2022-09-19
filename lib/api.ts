@@ -6,7 +6,7 @@ import { NqlOrRules } from './magic/types';
 import { getFileName, parseCode, runInVm } from "./magic/utils";
 import { Rewriter } from 'synvert-core';
 
-const client = new Client({ node: process.env.ELASTICSEARC_URL || 'http://localhost:9200' });
+const client = new Client({ node: process.env.ELASTICSEARCH_URL || 'http://localhost:9200' });
 
 export const generateAst = (extension: string, code: string): any => {
   return parseCode(extension, code, false);
