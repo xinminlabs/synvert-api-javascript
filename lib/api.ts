@@ -1,9 +1,12 @@
+import { Client } from '@elastic/elasticsearch';
 import fs from 'fs';
 import mock from 'mock-fs';
 import Magic from "./magic";
 import { NqlOrRules } from './magic/types';
 import { getFileName, parseCode, runInVm } from "./magic/utils";
 import { Rewriter } from 'synvert-core';
+
+const client = new Client({ node: process.env.ELASTICSEARC_URL || 'http://localhost:9200' });
 
 export const generateAst = (extension: string, code: string): any => {
   return parseCode(extension, code, false);
@@ -27,7 +30,16 @@ export const generateSnippet = (extension: string, inputs: string[], outputs: st
   return Magic.call(extension, inputs, outputs, nqlOrRules);
 }
 
-const getRewriter = () => {
+export const querySnippets = async (query: string): Promise<object[]> => {
+  const result = await client.search({ index: 'synvert-javascript-snippets', body: { query: { query_string: { query } } } });
+  if (result.body.hits.total.value > 0) {
+    return result.body.hits.hits.map(hit => Object.assign({ id: hit._id }, hit._source));
+  } else {
+    return [];
+  }
+}
+
+const getRewriter = (): Rewriter => {
   const group = Object.keys(Rewriter.rewriters)[0];
   const name = Object.keys(Rewriter.rewriters[group])[0];
   return Rewriter.fetch(group, name);
