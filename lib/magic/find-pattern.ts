@@ -1,6 +1,7 @@
 import { Node, SyntaxKind } from "typescript";
 import { ConvertPatternOptions, NqlOrRules } from "./types";
 import Builder, { BuilderNode } from "./builder";
+import { PATTERNS } from "./convert-pattern";
 import { allArrays, allEqual, allNodes, allNodesEqual, allNodeTypeEqual, getChildKeys, getNodeType, getSource, isNode } from "./utils";
 
 class FindPattern {
@@ -23,7 +24,7 @@ class FindPattern {
     const patterns = this.generatePatterns(inputNodes);
     if (this.nqlOrRules === NqlOrRules.nql) {
       builderNode.addFindNodeFindPattern(patterns, (findPatternNode) => {
-        ["findAndReplace", "findAndReplaceWith"].forEach(converterType => {
+        Object.keys(PATTERNS).forEach(converterType => {
           findPatternNode.addSelective((selectiveNode) => {
             this.convertFunc.call(this, {
               inputNodes,
@@ -36,7 +37,7 @@ class FindPattern {
       });
     } else {
       builderNode.addWithNodeFindPattern(patterns, (findPatternNode) => {
-        ["findAndReplace", "findAndReplaceWith"].forEach(converterType => {
+        Object.keys(PATTERNS).forEach(converterType => {
           findPatternNode.addSelective((selectiveNode) => {
             this.convertFunc.call(this, {
               inputNodes,

@@ -5,6 +5,10 @@ import { getNodeType, nodesEqual, isNode, getNodeRange, getChildKeys, escapeStri
 
 class FindAndReplaceWithConverter extends BaseConverter {
   call() {
+    if (this.outputNodes.length === 0) {
+      return;
+    }
+
     const firstInputNode = this.inputNodes[0];
     const firstOutputNode = this.outputNodes[0];
 

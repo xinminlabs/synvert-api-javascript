@@ -13,4 +13,9 @@ describe("Verifier", () => {
     const verifier = new Verifier(snippet, "ts", inputs, outputs);
     expect(verifier.call()).toBeTruthy();
   });
+
+  it("returns true if outputs is empty", () => {
+    const verifier = new Verifier("", "ts", [], []);
+    expect(verifier.call()).toBeTruthy();
+  });
 });

@@ -1,8 +1,10 @@
 import { ConvertPatternOptions } from "./types";
 import FindAndReplaceConverter from "./convert-pattern/find-and-replace-converter"
 import FindAndReplaceWithConverter from "./convert-pattern/find-and-replace-with-converter"
+import NoopConverter from "./convert-pattern/noop-converter";
 
-const PATTERNS = {
+export const PATTERNS = {
+  noop: NoopConverter,
   findAndReplace: FindAndReplaceConverter,
   findAndReplaceWith: FindAndReplaceWithConverter,
 }

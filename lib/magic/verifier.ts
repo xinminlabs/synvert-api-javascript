@@ -8,6 +8,10 @@ class Verifier {
   constructor(private snippet: string, private extension: string, private inputs: string[], private outputs: string[]) { }
 
   call(): boolean {
+    if (this.outputs.length === 0) {
+      return true;
+    }
+
     try {
       return this.inputs.every((input, index) => {
         const fileName = getFileName(this.extension);

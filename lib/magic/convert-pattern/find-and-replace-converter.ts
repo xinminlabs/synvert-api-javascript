@@ -17,6 +17,10 @@ class FindAndReplaceConverter extends BaseConverter {
   }
 
   call() {
+    if (this.outputNodes.length === 0) {
+      return;
+    }
+
     const firstInputNode = this.inputNodes[0];
     const firstOutputNode = this.outputNodes[0];
 

@@ -51,5 +51,16 @@ describe("Magic", () => {
         });
       `);
     });
+
+    it("get a noop", () => {
+      const extension = "ts";
+      const inputs = [`const x: Array<string> = ['a', 'b'];`, `const y: Array<string> = ['c', 'd'];`];
+      const snippet = Magic.call(extension, inputs, [], NqlOrRules.rules);
+      expect(snippet).toEqual(dedent`
+        withNode({ nodeType: "FirstStatement", declarationList: { nodeType: "VariableDeclarationList", declarations: { 0: { nodeType: "VariableDeclaration", name: { nodeType: "Identifier" }, initializer: { nodeType: "ArrayLiteralExpression", elements: { 0: { nodeType: "StringLiteral" }, 1: { nodeType: "StringLiteral" }, length: 2 } }, type: { nodeType: "TypeReference", typeName: "Array", typeArguments: { 0: { nodeType: "StringKeyword" }, length: 1 } } }, length: 1 } } }, () => {
+          noop();
+        });
+      `);
+    });
   });
 });
