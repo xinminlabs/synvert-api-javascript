@@ -15,10 +15,10 @@ const validateInputsOutputs = (req: Request, res: Response, next: NextFunction) 
   if (!req.body.inputs || !Array.isArray(req.body.inputs) || req.body.inputs.length === 0) {
     return res.status(400).json({ error: "Inputs are invalid." });
   }
-  if (!req.body.outputs || !Array.isArray(req.body.outputs) || req.body.outputs.length === 0) {
+  if (!req.body.outputs || !Array.isArray(req.body.outputs)) {
     return res.status(400).json({ error: "Outputs are invalid." });
   }
-  if (req.body.inputs.length !== req.body.outputs.length) {
+  if (req.body.outputs.length > 0 && req.body.inputs.length !== req.body.outputs.length) {
     return res.status(400).json({ error: "Inputs size is not equal to outputs size." });
   }
   try {
