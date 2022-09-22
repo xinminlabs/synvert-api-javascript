@@ -31,7 +31,27 @@ export const generateSnippet = (extension: string, inputs: string[], outputs: st
 }
 
 export const querySnippets = async (query: string): Promise<object[]> => {
-  const result = await client.search({ index: 'synvert-javascript-snippets', body: { query: { query_string: { query } } } });
+  const result = await client.search({ index: 'synvert-javascript-snippets',
+    body: {
+      query: {
+        bool: {
+          should: [{
+            match_bool_prefix: {
+              group: { query },
+            }
+          }, {
+            match_bool_prefix: {
+              name: { query },
+            }
+          }, {
+            match_bool_prefix: {
+              description: { query },
+            }
+          }]
+        }
+      }
+    }
+  });
   if (result.body.hits.total.value > 0) {
     return result.body.hits.hits.map(hit => Object.assign({ id: hit._id }, hit._source));
   } else {
