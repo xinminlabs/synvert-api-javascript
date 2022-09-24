@@ -124,11 +124,12 @@ class FindPatternFindNode extends BuilderNode {
     const nqlArray = [];
     if (attributes["nodeType"]) {
       nqlArray.push(`.${attributes["nodeType"]}`);
-      delete attributes["nodeType"]
     }
     Object.keys(attributes).forEach(key => {
       const value = attributes[key];
-      if (ignoredAttribute(key, value)) {
+      if (key === "nodeType") {
+        // skip
+      } else if (ignoredAttribute(key, value)) {
         // skip
       } else if (typeof value === "object") {
         if (value["nodeType"]) {
