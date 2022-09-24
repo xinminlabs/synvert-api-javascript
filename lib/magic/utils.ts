@@ -109,7 +109,7 @@ const getScriptKind = (extension: string): ScriptKind => {
     case "js":
     case "jsx":
       return ScriptKind.JSX;
-      default:
-        return ScriptKind.Unknown;
+    default:
+      return ScriptKind.Unknown;
   }
 }
