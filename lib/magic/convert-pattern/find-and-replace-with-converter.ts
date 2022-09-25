@@ -22,9 +22,12 @@ class FindAndReplaceWithConverter extends BaseConverter {
       inputNode.forEach((inputChildNode, index) => {
         if (!(replacedNode instanceof FakeNode)) {
           const replaceKey = key ? `${key}.${index}` : index.toString();
-          const [found, result] = this.findAndReplaceWith(replacedNode, inputChildNode, replaceKey);
+          let [found, result] = this.findAndReplaceWith(replacedNode, inputChildNode, replaceKey);
           if (found) {
-            replacedNode = result;
+            while (found) {
+              replacedNode = result;
+              [found, result] = this.findAndReplaceWith(replacedNode as Node, inputChildNode, replaceKey);
+            }
           } else {
             replacedNode = this.replaceNode(replacedNode, inputChildNode, replaceKey);
           }
@@ -34,9 +37,12 @@ class FindAndReplaceWithConverter extends BaseConverter {
       getChildKeys(getNodeType(inputNode)).forEach(childKey => {
         if (!(replacedNode instanceof FakeNode) && inputNode[childKey]) {
           const replaceKey = key ? `${key}.${childKey}` : childKey;
-          const [found, result] = this.findAndReplaceWith(replacedNode, inputNode[childKey], replaceKey);
+          let [found, result] = this.findAndReplaceWith(replacedNode, inputNode[childKey], replaceKey);
           if (found) {
-            replacedNode = result;
+            while (found) {
+              replacedNode = result;
+              [found, result] = this.findAndReplaceWith(replacedNode as Node, inputNode[childKey], replaceKey);
+            }
           } else {
             replacedNode = this.replaceNode(replacedNode, inputNode[childKey], replaceKey);
           }
