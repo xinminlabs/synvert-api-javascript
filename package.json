@@ -27,6 +27,7 @@
   "dependencies": {
     "@elastic/elasticsearch": "^7.17.0",
     "body-parser": "^1.20.0",
+    "clone": "^2.1.2",
     "cors": "^2.8.5",
     "debug": "^4.3.4",
     "espree": "^9.3.1",

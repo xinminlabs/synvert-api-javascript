@@ -63,7 +63,7 @@ describe("Analyzer", () => {
         const expected = [
           dedent`
             withNode({ nodeType: "FirstStatement", declarationList: { nodeType: "VariableDeclarationList", declarations: { 0: { nodeType: "VariableDeclaration", name: { nodeType: "Identifier" }, initializer: { nodeType: "ArrayLiteralExpression", elements: { 0: { nodeType: "StringLiteral" }, 1: { nodeType: "StringLiteral" }, length: 2 } }, type: { nodeType: "TypeReference", typeName: "Array", typeArguments: { 0: { nodeType: "StringKeyword" }, length: 1 } } }, length: 1 } } }, () => {
-              replace("declarationList.declarations.0.type", { with: "string[]" });
+              replace("declarationList.declarations.0.type", { with: "{{declarationList.declarations.0.type.typeArguments.0}}[]" });
             });
           `,
           dedent`
@@ -84,7 +84,7 @@ describe("Analyzer", () => {
         const expected = [
           dedent`
             withNode({ nodeType: "FirstStatement", declarationList: { nodeType: "VariableDeclarationList", declarations: { 0: { nodeType: "VariableDeclaration", name: { nodeType: "Identifier" }, initializer: { nodeType: "ArrayLiteralExpression", elements: { 0: { nodeType: "StringLiteral" }, 1: { nodeType: "StringLiteral" }, length: 2 } }, type: { nodeType: "TypeReference", typeName: "Array", typeArguments: { 0: { nodeType: "UnionType", types: { 0: { nodeType: "StringKeyword" }, 1: { nodeType: "NumberKeyword" }, length: 2 } }, length: 1 } } }, length: 1 } } }, () => {
-              replace("declarationList.declarations.0.type", { with: "(string | number)[]" });
+              replace("declarationList.declarations.0.type", { with: "({{declarationList.declarations.0.type.typeArguments.0}})[]" });
             });
           `,
           dedent`

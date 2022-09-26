@@ -47,7 +47,7 @@ describe("Magic", () => {
       const snippet = Magic.call(extension, inputs, outputs, NqlOrRules.rules);
       expect(snippet).toEqual(dedent`
         withNode({ nodeType: "FirstStatement", declarationList: { nodeType: "VariableDeclarationList", declarations: { 0: { nodeType: "VariableDeclaration", name: { nodeType: "Identifier" }, initializer: { nodeType: "ArrayLiteralExpression", elements: { 0: { nodeType: "StringLiteral" }, 1: { nodeType: "StringLiteral" }, length: 2 } }, type: { nodeType: "TypeReference", typeName: "Array", typeArguments: { 0: { nodeType: "StringKeyword" }, length: 1 } } }, length: 1 } } }, () => {
-          replace("declarationList.declarations.0.type", { with: "string[]" });
+          replace("declarationList.declarations.0.type", { with: "{{declarationList.declarations.0.type.typeArguments.0}}[]" });
         });
       `);
     });

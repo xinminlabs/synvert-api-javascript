@@ -21,32 +21,32 @@ describe("FindAndReplaceConverter", () => {
     });
   });
 
-  describe("#replaceNode", () => {
+  describe("#replaceChildNode", () => {
     it("is all children replaced", () => {
       const inputNode = parseJS("$.array(foo)")["expression"]
       const outputNode = parseJS("Array.isArray(bar)")["expression"]
-      const allChildrenReplaced = converter["replaceNode"](inputNode, outputNode)
+      const allChildrenReplaced = converter["replaceChildNode"](inputNode, outputNode)
       expect(allChildrenReplaced).toBeTruthy();
     });
 
     it("is all children replaced for array", () => {
       const inputNode = parseJS("$.array(foo, bar)")["expression"]["arguments"]
       const outputNode = parseJS("Array.isArray(bar, foo)")["expression"]["arguments"]
-      const allChildrenReplaced = converter["replaceNode"](inputNode, outputNode)
+      const allChildrenReplaced = converter["replaceChildNode"](inputNode, outputNode)
       expect(allChildrenReplaced).toBeTruthy();
     });
 
     it("is not all children replaced", () => {
       const inputNode = parseJS("$.isArray(foo)")["expression"]
       const outputNode = parseJS("Array.isArray(bar)")["expression"]
-      const allChildrenReplaced = converter["replaceNode"](inputNode, outputNode)
+      const allChildrenReplaced = converter["replaceChildNode"](inputNode, outputNode)
       expect(allChildrenReplaced).toBeFalsy();
     });
 
     it("is not all children replaced for array", () => {
       const inputNode = parseJS("$.isArray(foo, foo)")["expression"]["arguments"]
       const outputNode = parseJS("Array.isArray(foo, bar)")["expression"]["arguments"]
-      const allChildrenReplaced = converter["replaceNode"](inputNode, outputNode)
+      const allChildrenReplaced = converter["replaceChildNode"](inputNode, outputNode)
       expect(allChildrenReplaced).toBeFalsy();
     });
   });
@@ -80,7 +80,18 @@ describe("FindAndReplaceConverter", () => {
       const converter = new FindAndReplaceConverter(inputNodes, outputNodes, builderNode);
       converter.call();
       expect(builderNode["children"].length).toEqual(1);
-      expect(builderNode["children"][0].generateSnippet()).toEqual(`replace("declarationList.declarations.0.type", { with: "string[]" });`);
+      expect(builderNode["children"][0].generateSnippet()).toEqual(`replace("declarationList.declarations.0.type", { with: "{{declarationList.declarations.0.type.typeArguments.0}}[]" });`);
+    });
+
+    it("generates replace snippet 4", () => {
+      const inputNodes = [parseJS(`foo.substr(start, length);`), parseJS(`bar.substr(end, size);`)];
+      const outputNodes = [parseJS(`foo.slice(start, start + length);`), parseJS(`bar.slice(end, end + size)`)];
+      const builderNode = new BuilderNode();
+      const converter = new FindAndReplaceConverter(inputNodes, outputNodes, builderNode);
+      converter.call();
+      expect(builderNode["children"].length).toEqual(2);
+      expect(builderNode["children"][1].generateSnippet()).toEqual(`replace("expression.expression.name", { with: "slice" });`);
+      expect(builderNode["children"][0].generateSnippet()).toEqual(`replace("expression.arguments.1", { with: "{{expression.arguments.0}} + {{expression.arguments.1}}" });`);
     });
   });
 });

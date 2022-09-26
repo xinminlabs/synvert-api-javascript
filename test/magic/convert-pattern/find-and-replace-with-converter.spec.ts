@@ -34,7 +34,7 @@ describe("FindAndReplaceWithConverter", () => {
     it("updates node by names", () => {
       const node = parseJS("$.isArray(foo)")["expression"];
       const fakeNode = new FakeNode("foobar");
-      converter["deepUpdated"](node, ["expression", "expression"], fakeNode);
+      converter["deepUpdated"](node, ["expression", "expression"], fakeNode, 0);
       expect(node["expression"]["expression"]).toBeInstanceOf(FakeNode);
     });
   });
@@ -43,7 +43,7 @@ describe("FindAndReplaceWithConverter", () => {
     it("get all fake nodes", () => {
       const node = parseJS("$.isArray(foo)")["expression"];
       const fakeNode = new FakeNode("foobar");
-      converter["deepUpdated"](node, ["expression", "expression"], fakeNode);
+      converter["deepUpdated"](node, ["expression", "expression"], fakeNode, 0);
       const allFakeNodes = converter["getAllFakeNodes"](node);
       expect(allFakeNodes).toEqual([fakeNode]);
     });
@@ -53,7 +53,7 @@ describe("FindAndReplaceWithConverter", () => {
     it("generates source code", () => {
       const node = parseJS("$.isArray(foo)")["expression"];
       const fakeNode = new FakeNode("{{expression.name}}");
-      converter["deepUpdated"](node, ["expression", "name"], fakeNode);
+      converter["deepUpdated"](node, ["expression", "name"], fakeNode, 0);
       const sourceCode = converter["generateSourceCode"](node);
       expect(sourceCode).toEqual("$.{{expression.name}}(foo)");
     });
@@ -63,7 +63,7 @@ describe("FindAndReplaceWithConverter", () => {
     it("found if replaced node and target node are same", () => {
       const replacedNode = parseJS("$.isArray")["expression"];
       const targetNode = parseJS("$.isArray")["expression"];
-      const [found, fakeNode] = converter["findAndReplaceWith"](replacedNode, targetNode, "expression");
+      const [found, fakeNode] = converter["findAndReplaceWith"](replacedNode, targetNode, 0, "expression");
       expect(found).toBeTruthy();
       expect(fakeNode).toBeInstanceOf(FakeNode);
       expect((fakeNode as FakeNode).name).toEqual("{{expression}}");
@@ -72,7 +72,7 @@ describe("FindAndReplaceWithConverter", () => {
     it("found if target node is a sub target of replaced node", () => {
       const replacedNode = parseJS("$.isArray")["expression"];
       const targetNode = parseJS("isArray")["expression"];
-      const [found, fakeNode] = converter["findAndReplaceWith"](replacedNode, targetNode, "expression.name");
+      const [found, fakeNode] = converter["findAndReplaceWith"](replacedNode, targetNode, 0, "expression.name");
       expect(found).toBeTruthy();
       expect(fakeNode).not.toBeInstanceOf(FakeNode);
       expect((fakeNode as Node)["name"]).toBeInstanceOf(FakeNode);
