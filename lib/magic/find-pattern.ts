@@ -21,7 +21,11 @@ class FindPattern {
   }
 
   private nodesPattern(inputNodes: Node[], outputNodes: Node[], builderNode: BuilderNode): void {
-    const patterns = this.generatePatterns(inputNodes);
+    let patterns = this.generatePatterns(inputNodes);
+    if (typeof patterns === "string") {
+      // if the input node is a simple Identifier
+      patterns = { nodeType: "Identifier", escapedText: patterns };
+    }
     if (this.nqlOrRules === NqlOrRules.nql) {
       builderNode.addFindNodeFindPattern(patterns, (findPatternNode) => {
         Object.keys(PATTERNS).forEach(converterType => {

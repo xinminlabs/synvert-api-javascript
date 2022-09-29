@@ -26,6 +26,18 @@ describe("FindPattern", () => {
       `;
       expect(findPattern.call()).toEqual([expected]);
     });
+
+    it("finds pattern if input is just a simple identifier", () => {
+      const inputNodes = [parseJS("NaN")["expression"]];
+      const outputNodes = [parseJS("Number.NaN")["expression"]];
+      const findPattern = new FindPattern(inputNodes, outputNodes, NqlOrRules.rules, () => {});
+      const expected = dedent`
+        withNode({ nodeType: "Identifier", escapedText: "NaN" }, () => {
+        });
+      `;
+      expect(findPattern.call()).toEqual([expected]);
+    });
+
   });
 
   describe("#generatePatterns", () => {
