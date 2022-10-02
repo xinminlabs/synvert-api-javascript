@@ -1,4 +1,5 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
+import Rollbar from 'rollbar';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import morgan from 'morgan';
@@ -10,6 +11,12 @@ const app: Express = express();
 const jsonParser = bodyParser.json();
 app.use(cors())
 app.use(morgan('combined'))
+
+const rollbar = new Rollbar({
+  accessToken: process.env.ROLLBAR_ACCESS_TOKEN,
+  captureUncaught: true,
+  captureUnhandledRejections: true,
+});
 
 const validateInputsOutputs = (req: Request, res: Response, next: NextFunction) => {
   if (!req.body.inputs || !Array.isArray(req.body.inputs) || req.body.inputs.length === 0) {
@@ -70,6 +77,8 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.log(err)
   res.status(400).json({ error: err.message });
 });
+
+app.use(rollbar.errorHandler());
 
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
