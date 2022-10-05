@@ -3,7 +3,7 @@ import fs from 'fs';
 import mock from 'mock-fs';
 import Magic from "./magic";
 import { NqlOrRules } from './magic/types';
-import { getFileName, parseCode, runInVm } from "./magic/utils";
+import { getFileName, parseCode } from "./magic/utils";
 import { Rewriter } from 'synvert-core';
 
 const client = new Client({ node: process.env.ELASTICSEARCH_URL || 'http://localhost:9200' });
@@ -15,8 +15,7 @@ export const generateAst = (extension: string, code: string): any => {
 export const parseSynvertSnippet = (extension: string, code: string, snippet: string): string => {
   try {
     const fileName = getFileName(extension);
-    runInVm(wrapSnippet(extension, snippet));
-    const rewriter = getRewriter();
+    const rewriter = eval(wrapSnippet(extension, snippet));
     mock({ [fileName]: code });
     rewriter.process();
     return fs.readFileSync(fileName, 'utf-8');
@@ -57,12 +56,6 @@ export const querySnippets = async (query: string): Promise<object[]> => {
   } else {
     return [];
   }
-}
-
-const getRewriter = (): Rewriter => {
-  const group = Object.keys(Rewriter.rewriters)[0];
-  const name = Object.keys(Rewriter.rewriters[group])[0];
-  return Rewriter.fetch(group, name);
 }
 
 const wrapSnippet = (extension: string, snippet: string): string => {
