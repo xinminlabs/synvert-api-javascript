@@ -35,6 +35,6 @@
     "morgan": "^1.10.0",
     "rollbar": "^2.25.2",
     "synvert-core": "^1.11.0",
-    "typescript-visitor-keys": "^0.2.7"
+    "typescript-visitor-keys": "^0.2.10"
   }
 }
