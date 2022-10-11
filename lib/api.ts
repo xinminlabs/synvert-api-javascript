@@ -1,10 +1,15 @@
 import { Client } from '@elastic/elasticsearch';
+import { VM } from "vm2";
+import ts from 'typescript';
 import fs from 'fs';
 import mock from 'mock-fs';
+import NodeQuery from "@xinminlabs/node-query";
+import NodeMutation, { ProcessResult } from "@xinminlabs/node-mutation";
 import Magic from "./magic";
 import { NqlOrRules } from './magic/types';
 import { getFileName, parseCode } from "./magic/utils";
 import { Rewriter } from 'synvert-core';
+import type { Location, Range } from "./types";
 
 const client = new Client({ node: process.env.ELASTICSEARCH_URL || 'http://localhost:9200' });
 
@@ -57,6 +62,57 @@ export const querySnippets = async (query: string): Promise<object[]> => {
     return [];
   }
 }
+
+export const parseNql = (
+  nql: string,
+  source: string,
+  path: string = "code.ts"
+): Range[] => {
+  const node = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true);
+  const nodeQuery = new NodeQuery<ts.Node>(nql);
+  const matchingNodes = nodeQuery.queryNodes(node);
+  return matchingNodes.map((matchingNode) => {
+    return {
+      start: parseStartLocation(matchingNode),
+      end: parseEndLocation(matchingNode),
+    };
+  });
+};
+
+export const mutateCode = (
+  nql: string,
+  source: string,
+  mutationCode: string,
+  path: string = "code.ts"
+): ProcessResult => {
+  const node = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true);
+  const nodeQuery = new NodeQuery<ts.Node>(nql);
+  const matchingNodes = nodeQuery.queryNodes(node);
+  const nodeMutation = new NodeMutation<ts.Node>(source);
+
+  matchingNodes.forEach((node) => {
+    const newCode = mutationCode
+      .split("\n")
+      .map((code) => `nodeMutation.${code}`);
+    const vm = new VM({ sandbox: { node, nodeMutation }, eval: false });
+    vm.run(newCode.join("\n"));
+  });
+  return nodeMutation.process();
+};
+
+const parseStartLocation = (node: ts.Node): Location => {
+  const { line, character } = node
+    .getSourceFile()
+    .getLineAndCharacterOfPosition(node.getStart());
+  return { line: line + 1, column: character + 1 };
+};
+
+const parseEndLocation = (node: ts.Node): Location => {
+  const { line, character } = node
+    .getSourceFile()
+    .getLineAndCharacterOfPosition(node.getEnd());
+  return { line: line + 1, column: character + 1 };
+};
 
 const wrapSnippet = (extension: string, snippet: string): string => {
   const input = snippet.trim();

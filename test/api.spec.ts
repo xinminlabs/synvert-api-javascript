@@ -1,5 +1,5 @@
 import dedent from 'dedent';
-import { generateAst, parseSynvertSnippet, generateSnippet } from '../lib/api';
+import { generateAst, parseSynvertSnippet, generateSnippet, parseNql, mutateCode } from '../lib/api';
 import { NqlOrRules } from '../lib/magic/types';
 
 describe("genereteAst", () => {
@@ -107,5 +107,26 @@ describe("genereteSnippet", () => {
         replace("expression.expression", { with: "Array" });
       });
     `);
+  });
+});
+
+describe("parseNql", () => {
+  it("gets node from nql", () => {
+    const nql = ".ClassDeclaration";
+    const code = "class Synvert {}";
+    const ranges = parseNql(nql, code);
+    expect(ranges).toEqual([
+      { start: { line: 1, column: 1 }, end: { line: 1, column: 17 } },
+    ]);
+  });
+});
+
+describe("mutateCode", () => {
+  it("gets new source code", () => {
+    const nql = ".ClassDeclaration";
+    const code = "class Synvert {}";
+    const mutationCode = 'replace(node, "name", { with: "Foobar" })';
+    const result = mutateCode(nql, code, mutationCode);
+    expect(result.newSource).toEqual("class Foobar {}");
   });
 });

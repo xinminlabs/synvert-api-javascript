@@ -34,7 +34,8 @@
     "mock-fs": "^5.1.2",
     "morgan": "^1.10.0",
     "rollbar": "^2.25.2",
-    "synvert-core": "^1.11.0",
-    "typescript-visitor-keys": "^0.2.10"
+    "synvert-core": "^1.15.0",
+    "typescript-visitor-keys": "^0.2.10",
+    "vm2": "^3.9.11"
   }
 }
