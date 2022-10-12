@@ -114,7 +114,7 @@ describe("parseNql", () => {
   it("gets node from nql", () => {
     const nql = ".ClassDeclaration";
     const code = "class Synvert {}";
-    const ranges = parseNql(nql, code);
+    const ranges = parseNql("ts", nql, code);
     expect(ranges).toEqual([
       { start: { line: 1, column: 1 }, end: { line: 1, column: 17 } },
     ]);
@@ -126,7 +126,7 @@ describe("mutateCode", () => {
     const nql = ".ClassDeclaration";
     const code = "class Synvert {}";
     const mutationCode = 'replace(node, "name", { with: "Foobar" })';
-    const result = mutateCode(nql, code, mutationCode);
+    const result = mutateCode("ts", nql, code, mutationCode);
     expect(result.newSource).toEqual("class Foobar {}");
   });
 });

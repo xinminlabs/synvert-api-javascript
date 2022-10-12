@@ -64,11 +64,12 @@ export const querySnippets = async (query: string): Promise<object[]> => {
 }
 
 export const parseNql = (
+  extension: string,
   nql: string,
-  source: string,
-  path: string = "code.ts"
+  source: string
 ): Range[] => {
-  const node = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true);
+  const fileName = getFileName(extension);
+  const node = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true);
   const nodeQuery = new NodeQuery<ts.Node>(nql);
   const matchingNodes = nodeQuery.queryNodes(node);
   return matchingNodes.map((matchingNode) => {
@@ -80,12 +81,13 @@ export const parseNql = (
 };
 
 export const mutateCode = (
+  extension: string,
   nql: string,
   source: string,
-  mutationCode: string,
-  path: string = "code.ts"
+  mutationCode: string
 ): ProcessResult => {
-  const node = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true);
+  const fileName = getFileName(extension);
+  const node = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true);
   const nodeQuery = new NodeQuery<ts.Node>(nql);
   const matchingNodes = nodeQuery.queryNodes(node);
   const nodeMutation = new NodeMutation<ts.Node>(source);

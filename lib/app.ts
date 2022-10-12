@@ -78,16 +78,16 @@ app.post('/query-snippets', jsonParser, async (req: Request, res: Response) => {
  *******************/
 
 app.post("/parse-nql", jsonParser, (req: Request, res: Response) => {
-  const ranges = parseNql(req.body.nql, req.body.code, req.body.path);
+  const ranges = parseNql(req.body.extension, req.body.nql, req.body.code);
   res.json({ ranges });
 });
 
 app.post("/mutate-code", jsonParser, (req: Request, res: Response) => {
   const result = mutateCode(
+    req.body.extension,
     req.body.nql,
     req.body.source_code,
-    req.body.mutation_code,
-    req.body.path
+    req.body.mutation_code
   );
   res.json({
     affected: result.affected,
