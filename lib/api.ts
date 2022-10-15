@@ -20,7 +20,7 @@ export const generateAst = (extension: string, code: string): any => {
 export const parseSynvertSnippet = (extension: string, code: string, snippet: string): string => {
   try {
     const fileName = getFileName(extension);
-    const rewriter = eval(wrapSnippet(extension, snippet));
+    const rewriter = eval(formatSnippet(extension, snippet));
     mock({ [fileName]: code });
     rewriter.process();
     return fs.readFileSync(fileName, 'utf-8');
@@ -116,7 +116,7 @@ const parseEndLocation = (node: ts.Node): Location => {
   return { line: line + 1, column: character + 1 };
 };
 
-const wrapSnippet = (extension: string, snippet: string): string => {
+const formatSnippet = (extension: string, snippet: string): string => {
   const input = snippet.trim();
   if (input.startsWith("const Synvert = require('synvert-core')")) {
     return snippet;
