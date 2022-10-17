@@ -63,6 +63,18 @@ describe("Magic", () => {
       `);
     });
 
+    it("gets a remove", () => {
+      const extension = "ts";
+      const inputs = [`console.log("hello world")`];
+      const outputs = [""];
+      const snippet = Magic.call(extension, inputs, outputs, NqlOrRules.rules);
+      expect(snippet).toEqual(dedent`
+        withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "console", name: "log" }, arguments: { 0: { nodeType: "StringLiteral", text: "hello world" }, length: 1 } }, () => {
+          remove();
+        });
+      `);
+    });
+
     it('gets a snippet with empty string', () => {
       const extension = "ts";
       const inputs = ["string.split('')", "str.split('')"];

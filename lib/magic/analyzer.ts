@@ -12,10 +12,10 @@ class Analyzer {
   call() {
     let inputNodes = this.inputs.map(input => parseCode(this.extension, input));
     let outputNodes = this.outputs.map(output => parseCode(this.extension, output));
-    if (inputNodes.every(node => node.kind === SyntaxKind.ExpressionStatement)) {
+    if (inputNodes.every(node => node && node.kind === SyntaxKind.ExpressionStatement)) {
       inputNodes = inputNodes.map(node => node[SKIP_NODE_TYPE]);
     }
-    if (outputNodes.every(node => node.kind === SyntaxKind.ExpressionStatement)) {
+    if (outputNodes.every(node => node && node.kind === SyntaxKind.ExpressionStatement)) {
       outputNodes = outputNodes.map(node => node[SKIP_NODE_TYPE]);
     }
     return new FindPattern(inputNodes, outputNodes, this.nqlOrRules, (options) => {

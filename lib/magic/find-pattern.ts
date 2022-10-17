@@ -2,16 +2,16 @@ import { Node, SyntaxKind } from "typescript";
 import { ConvertPatternOptions, NqlOrRules } from "./types";
 import Builder, { BuilderNode } from "./builder";
 import { PATTERNS } from "./convert-pattern";
-import { allArrays, allEqual, allNodes, allNodesEqual, allNodeTypeEqual, getChildKeys, getNodeType, getSource, isNode } from "./utils";
+import { allArrays, allEqual, allNodes, allNodesEqual, allNodeTypeEqual, allUndefined, getChildKeys, getNodeType, getSource, isNode } from "./utils";
 
 class FindPattern {
   constructor(private inputNodes: Node[], private outputNodes: Node[], private nqlOrRules: NqlOrRules, private convertFunc: (ConvertPatternOptions) => void) {}
 
   call(): string[] {
-    if (!allNodeTypeEqual(this.inputNodes)) {
+    if (!allUndefined(this.inputNodes) && !allNodeTypeEqual(this.inputNodes)) {
       throw new Error("Input node types are not same");
     }
-    if (!allNodeTypeEqual(this.outputNodes)) {
+    if (!allUndefined(this.outputNodes) && !allNodeTypeEqual(this.outputNodes)) {
       throw new Error("Output node types are not same");
     }
 

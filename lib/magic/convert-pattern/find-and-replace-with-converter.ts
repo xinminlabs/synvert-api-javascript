@@ -10,6 +10,9 @@ class FindAndReplaceWithConverter extends BaseConverter {
 
     const firstInputNode = this.inputNodes[0];
     const firstOutputNode = this.outputNodes[0];
+    if (typeof firstOutputNode === "undefined") {
+      return;
+    }
 
     const replacedNode = this.replaceNode(clone(firstOutputNode), firstInputNode);
     const newStr = this.generateSourceCode(replacedNode);

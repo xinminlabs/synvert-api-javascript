@@ -39,6 +39,8 @@ export const allArrays = (values: any[]): boolean => values.every(value => Array
 
 export const allEqual = (values: any[]): boolean => values.every(value => value === values[0]);
 
+export const allUndefined = (values: any[]): boolean => values.every(value => typeof value === "undefined");
+
 export const allNodeTypeEqual = (nodes: Node[]): boolean => nodes.every(node => isNode(node) && node.kind === nodes[0].kind);
 
 export const allNodesEqual = (nodes: Node[]): boolean => nodes.every(node => nodesEqual(node, nodes[0]));
