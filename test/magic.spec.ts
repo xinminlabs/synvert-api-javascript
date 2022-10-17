@@ -75,6 +75,14 @@ describe("Magic", () => {
       `);
     });
 
+    it("gets an insert", () => {
+      const extension = "ts";
+      const inputs = [""];
+      const outputs = ["console.log('hello world')"];
+      const snippet = Magic.call(extension, inputs, outputs, NqlOrRules.rules);
+      expect(snippet).toEqual(`insert("console.log('hello world')", { at: "beginning" });`);
+    });
+
     it('gets a snippet with empty string', () => {
       const extension = "ts";
       const inputs = ["string.split('')", "str.split('')"];

@@ -3,6 +3,7 @@ import { ConvertPatternOptions, NqlOrRules } from "./types";
 import Builder, { BuilderNode } from "./builder";
 import { PATTERNS } from "./convert-pattern";
 import { allArrays, allEqual, allNodes, allNodesEqual, allNodeTypeEqual, allUndefined, getChildKeys, getNodeType, getSource, isNode } from "./utils";
+import InsertConverter from "./convert-pattern/insert-converter";
 
 class FindPattern {
   constructor(private inputNodes: Node[], private outputNodes: Node[], private nqlOrRules: NqlOrRules, private convertFunc: (ConvertPatternOptions) => void) {}
@@ -26,6 +27,11 @@ class FindPattern {
       // if the input node is a simple Identifier
       patterns = { nodeType: "Identifier", escapedText: patterns };
     }
+    if (inputNodes.every(node => typeof node === "undefined")) {
+      new InsertConverter(inputNodes, outputNodes, builderNode).call();
+      return;
+    }
+
     if (this.nqlOrRules === NqlOrRules.nql) {
       builderNode.addFindNodeFindPattern(patterns, (findPatternNode) => {
         Object.keys(PATTERNS).forEach(converterType => {
