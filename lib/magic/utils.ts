@@ -79,6 +79,9 @@ export const escapeString = (str: string): string => {
   if (str.includes("\n")) {
     return `\`${str}\``;
   }
+  if (str.includes('"')) {
+    return `'${str}'`;
+  }
   return `"${str}"`;
 }
 
