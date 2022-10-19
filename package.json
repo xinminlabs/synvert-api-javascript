@@ -21,8 +21,7 @@
     "jest": "^27.5.1",
     "nodemon": "^2.0.15",
     "ts-jest": "^27.1.4",
-    "ts-node": "^10.7.0",
-    "typescript": "^4.7.4"
+    "ts-node": "^10.7.0"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^7.17.0",
@@ -34,8 +33,9 @@
     "mock-fs": "^5.1.2",
     "morgan": "^1.10.0",
     "rollbar": "^2.25.2",
-    "synvert-core": "^1.15.0",
-    "typescript-visitor-keys": "^0.2.10",
+    "synvert-core": "^1.19.0",
+    "typescript": "^4.8.4",
+    "typescript-visitor-keys": "^0.2.13",
     "vm2": "^3.9.11"
   }
 }
