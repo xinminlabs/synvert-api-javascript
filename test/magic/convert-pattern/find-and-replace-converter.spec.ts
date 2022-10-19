@@ -14,7 +14,7 @@ describe("FindAndReplaceConverter", () => {
       converter["addReplaceResult"]("expression.name", "isArray");
       const patterns = converter["generateReplacePatterns"]();
       expect(patterns).toEqual([
-        `replace("arguments", { with: "(\"foo\", \"bar\")" });`,
+        `replace("arguments", { with: '("foo", "bar")' });`,
         `replace("expression.expression", { with: "$" });`,
         `replace("expression.name", { with: "isArray" });`,
       ]);
