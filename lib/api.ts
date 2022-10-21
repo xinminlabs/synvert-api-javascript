@@ -19,6 +19,8 @@ export const generateAst = (extension: string, code: string): any => {
 
 export const parseSynvertSnippet = (extension: string, code: string, snippet: string): string => {
   try {
+    parseCode(extension, code, false);
+    parseCode(extension, snippet, false);
     const fileName = getFileName(extension);
     const rewriter = eval(formatSnippet(extension, snippet));
     mock({ [fileName]: code });
@@ -68,8 +70,7 @@ export const parseNql = (
   nql: string,
   source: string
 ): Range[] => {
-  const fileName = getFileName(extension);
-  const node = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true);
+  const node = parseCode(extension, source, true);
   const nodeQuery = new NodeQuery<ts.Node>(nql);
   const matchingNodes = nodeQuery.queryNodes(node);
   return matchingNodes.map((matchingNode) => {
@@ -86,8 +87,8 @@ export const mutateCode = (
   source: string,
   mutationCode: string
 ): ProcessResult => {
-  const fileName = getFileName(extension);
-  const node = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true);
+  parseCode(extension, mutationCode, true);
+  const node = parseCode(extension, source, true);
   const nodeQuery = new NodeQuery<ts.Node>(nql);
   const matchingNodes = nodeQuery.queryNodes(node);
   const nodeMutation = new NodeMutation<ts.Node>(source);

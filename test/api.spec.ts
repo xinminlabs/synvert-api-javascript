@@ -11,7 +11,7 @@ describe("genereteAst", () => {
 
   it("raises error if source code is invalid", () => {
     const code = "class Synvert }";
-    expect(() => { generateAst("ts", code) }).toThrow(SyntaxError);
+    expect(() => { generateAst("ts", code) }).toThrow(new SyntaxError("'{' expected."));
   });
 
   it("gets jsx node from source code", () => {
@@ -83,6 +83,26 @@ describe("parseSynvertSnippet", () => {
     `;
     const output = parseSynvertSnippet("js", code, snippet);
     expect(output).toEqual("'use strict'\nclass Synvert {}");
+  });
+
+  it("raises error if source code is invalid", () => {
+    const code = "class Synvert }";
+    const snippet = `
+      unlessExistNode({ nodeType: "ExpressionStatement", directive: "use strict" }, () => {
+        insert("'use strict'\\n", { at: "beginning" });
+      });
+    `;
+    expect(() => { parseSynvertSnippet("js", code, snippet) }).toThrow(new SyntaxError("'{' expected."));
+  });
+
+  it("raises error if snippet is invalid", () => {
+    const code = "class Synvert {}";
+    const snippet = `
+      unlessExistNode({ nodeType: "ExpressionStatement", directive: "use strict" }, () =>
+        insert("'use strict'\\n", { at: "beginning" });
+      });
+    `;
+    expect(() => { parseSynvertSnippet("js", code, snippet) }).toThrow(new SyntaxError("')' expected."));
   });
 });
 
