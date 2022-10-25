@@ -18,7 +18,7 @@ class Verifier {
         const snippet = `
           const Synvert = require("synvert-core");
           new Synvert.Rewriter("group", "name", () => {
-            configure({ parser: 'typescript' });
+            configure({ parser: Synvert.Parser.TYPESCRIPT });
             withinFile("${fileName}", () => {
               ${this.snippet}
             });

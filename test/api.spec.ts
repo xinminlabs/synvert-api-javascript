@@ -33,7 +33,7 @@ describe("parseSynvertSnippet", () => {
     const snippet = `
       const Synvert = require("synvert-core");
       new Synvert.Rewriter("javascript", "use-strict", () => {
-        configure({ parser: 'typescript' });
+        configure({ parser: Synvert.Parser.TYPESCRIPT });
         withinFiles(Synvert.ALL_JS_FILES, () => {
           unlessExistNode({ nodeType: "ExpressionStatement", directive: "use strict" }, () => {
             insert("'use strict'\\n", { at: "beginning" });
@@ -49,7 +49,7 @@ describe("parseSynvertSnippet", () => {
     const code = "class Synvert {}";
     const snippet = `
       new Synvert.Rewriter("javascript", "use-strict", () => {
-        configure({ parser: 'typescript' });
+        configure({ parser: Synvert.Parser.TYPESCRIPT });
         withinFiles(Synvert.ALL_JS_FILES, () => {
           unlessExistNode({ nodeType: "ExpressionStatement", directive: "use strict" }, () => {
             insert("'use strict'\\n", { at: "beginning" });

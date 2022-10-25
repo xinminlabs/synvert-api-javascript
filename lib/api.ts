@@ -132,7 +132,7 @@ const formatSnippet = (extension: string, snippet: string): string => {
     return `
       const Synvert = require("synvert-core");
       new Synvert.Rewriter("group", "name", () => {
-        configure({ parser: 'typescript' });
+        configure({ parser: Synvert.Parser.TYPESCRIPT });
         ${snippet}
       });
     `;
@@ -142,7 +142,7 @@ const formatSnippet = (extension: string, snippet: string): string => {
   return `
     const Synvert = require("synvert-core");
     new Synvert.Rewriter("group", "name", () => {
-      configure({ parser: 'typescript' });
+      configure({ parser: Synvert.Parser.TYPESCRIPT });
       withinFiles(Synvert.${fileConstant}, function () {
         ${snippet}
       });
