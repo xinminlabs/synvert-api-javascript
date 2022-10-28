@@ -22,8 +22,8 @@ export const parseSynvertSnippet = (extension: string, code: string, snippet: st
     parseCode(extension, code, false);
     parseCode(extension, snippet, false);
     const fileName = getFileName(extension);
-    const rewriter = eval(formatSnippet(extension, snippet));
     mock({ [fileName]: code });
+    const rewriter = eval(formatSnippet(extension, snippet));
     rewriter.process();
     return fs.readFileSync(fileName, 'utf-8');
   } finally {
