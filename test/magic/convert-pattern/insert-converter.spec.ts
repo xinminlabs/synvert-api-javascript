@@ -4,7 +4,7 @@ import { parseJS } from "../../test-helper";
 
 describe("InsertConverter", () => {
   describe("#call", () => {
-    it("generates noop snippet", () => {
+    it("generates insert snippet", () => {
       const builderNode = new BuilderNode();
       const converter = new InsertConverter([parseJS("")], [parseJS("console.log('hello world')")], builderNode);
       converter.call();
