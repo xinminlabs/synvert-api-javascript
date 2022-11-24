@@ -12,7 +12,7 @@ import { getFileName, parseCode } from "./magic/utils";
 import { Rewriter } from 'synvert-core';
 import type { Location, Range } from "./types";
 
-const sequelize = new Sequelize('postgres://postgres@localhost/synvert_development');
+const sequelize = new Sequelize(process.env.DATABASE_URL || 'postgres://postgres@localhost/synvert_development');
 const client = new Client({ node: process.env.ELASTICSEARCH_URL || 'http://localhost:9200' });
 
 export const generateAst = (extension: string, code: string): any => {

@@ -1,3 +1,4 @@
+import { createClient } from 'redis';
 import express, { Express, Request, Response, NextFunction } from 'express';
 import Rollbar from 'rollbar';
 import bodyParser from 'body-parser';
@@ -9,8 +10,14 @@ import { parseCode } from "./magic/utils";
 const port = process.env.PORT || 3000;
 const app: Express = express();
 const jsonParser = bodyParser.json();
+app.set('etag', false);
 app.use(cors())
 app.use(morgan('combined'))
+
+const ONE_DAY = 60 * 60 * 24;
+const SYNVERT_JAVASCRIPT_SNIPPETS_ETAG = "synvert-javascript-snippets-etag";
+const ALL_JAVASCRIPT_SNIPPETS = "all_javascript_snippets"
+const client = createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });
 
 const rollbar = new Rollbar({
   accessToken: process.env.ROLLBAR_ACCESS_TOKEN,
@@ -69,8 +76,23 @@ app.post('/generate-snippet', jsonParser, validateInputsOutputs, (req: Request, 
 });
 
 app.get('/snippets', async (req: Request, res: Response) => {
-  const snippets = await getSnippets();
-  res.json({ snippets });
+  const clientEtag = req.get('If-None-Match');
+  const serverEtag = await client.get(SYNVERT_JAVASCRIPT_SNIPPETS_ETAG);
+  if (clientEtag === serverEtag) {
+    res.status(304).end();
+    return
+  }
+
+  res.set("ETag", serverEtag);
+  res.set('Content-Type', 'application/json');
+  let response = await client.get(ALL_JAVASCRIPT_SNIPPETS);
+  if (!response) {
+    const snippets = await getSnippets();
+    response = JSON.stringify(snippets);
+    await client.set(ALL_JAVASCRIPT_SNIPPETS, response);
+    await client.expire(ALL_JAVASCRIPT_SNIPPETS, ONE_DAY);
+  }
+  res.send(response);
 });
 
 app.post('/query-snippets', jsonParser, async (req: Request, res: Response) => {
@@ -108,6 +130,9 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 app.use(rollbar.errorHandler());
 
-app.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
-});
+(async() => {
+  await client.connect();
+  app.listen(port, () => {
+    console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+  });
+})();
