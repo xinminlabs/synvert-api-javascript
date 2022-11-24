@@ -3,7 +3,7 @@ import Rollbar from 'rollbar';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import morgan from 'morgan';
-import { generateAst, generateSnippet, parseSynvertSnippet, querySnippets, parseNql, mutateCode } from './api';
+import { generateAst, generateSnippet, parseSynvertSnippet, querySnippets, parseNql, mutateCode, getSnippets } from './api';
 import { parseCode } from "./magic/utils";
 
 const port = process.env.PORT || 3000;
@@ -66,6 +66,11 @@ app.post('/generate-snippet', jsonParser, validateInputsOutputs, (req: Request, 
   } else {
     res.status(400).json({ error: 'Failed to generate the snippet!' });
   }
+});
+
+app.get('/snippets', async (req: Request, res: Response) => {
+  const snippets = await getSnippets();
+  res.json({ snippets });
 });
 
 app.post('/query-snippets', jsonParser, async (req: Request, res: Response) => {

@@ -1,3 +1,4 @@
+import { Sequelize, QueryTypes } from 'sequelize';
 import { Client } from '@elastic/elasticsearch';
 import { VM } from "vm2";
 import ts from 'typescript';
@@ -11,6 +12,7 @@ import { getFileName, parseCode } from "./magic/utils";
 import { Rewriter } from 'synvert-core';
 import type { Location, Range } from "./types";
 
+const sequelize = new Sequelize('postgres://postgres@localhost/synvert_development');
 const client = new Client({ node: process.env.ELASTICSEARCH_URL || 'http://localhost:9200' });
 
 export const generateAst = (extension: string, code: string): any => {
@@ -34,6 +36,10 @@ export const parseSynvertSnippet = (extension: string, code: string, snippet: st
 
 export const generateSnippet = (extension: string, inputs: string[], outputs: string[], nqlOrRules = NqlOrRules.nql): string => {
   return Magic.call(extension, inputs, outputs, nqlOrRules);
+}
+
+export const getSnippets = async () => {
+  return await sequelize.query("SELECT * FROM javascript_snippets", { type: QueryTypes.SELECT });
 }
 
 export const querySnippets = async (query: string): Promise<object[]> => {
