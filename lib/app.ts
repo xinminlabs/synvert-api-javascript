@@ -111,8 +111,7 @@ app.get('/check-versions', async (req: Request, res: Response) => {
     const synvertCoreResponse = await fetch('https://registry.npmjs.org/synvert-core/latest');
     const synvertCoreJSON = await synvertCoreResponse.json();
     synvertCoreVersion = synvertCoreJSON['version'];
-    client.hSet('javascript_versions', 'synvert_version', synvertVersion);
-    client.hSet('javascript_versions', 'synvert_core_version', synvertCoreVersion);
+    client.hSet('javascript_versions', { synvert_version: synvertVersion, synvert_core_version: synvertCoreVersion });
     client.expire('javascript_versions', ONE_DAY);
   }
   res.json({ synvert_version: synvertVersion, synvert_core_version: synvertCoreVersion });
