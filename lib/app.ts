@@ -7,7 +7,7 @@ import morgan from 'morgan';
 import { generateAst, generateSnippet, parseSynvertSnippet, querySnippets, parseNql, mutateCode, getSnippets } from './api';
 import { parseCode } from "./magic/utils";
 
-const port = process.env.PORT || 4000;
+const port = Number(process.env.PORT) || 4000;
 const app: Express = express();
 const jsonParser = bodyParser.json();
 app.set('etag', false);
