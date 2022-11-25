@@ -100,6 +100,24 @@ app.post('/query-snippets', jsonParser, async (req: Request, res: Response) => {
   res.json({ snippets });
 });
 
+app.get('/check-versions', async (req: Request, res: Response) => {
+  const versions = await client.hGetAll("javascript_versions");
+  let synvertVersion = versions['synvert_version'];
+  let synvertCoreVersion = versions['synvert_core_version'];
+  if (!synvertVersion || !synvertCoreVersion) {
+    const synvertResponse = await fetch('https://registry.npmjs.org/synvert/latest');
+    const synvertJSON = await synvertResponse.json();
+    synvertVersion = synvertJSON['version'];
+    const synvertCoreResponse = await fetch('https://registry.npmjs.org/synvert-core/latest');
+    const synvertCoreJSON = await synvertCoreResponse.json();
+    synvertCoreVersion = synvertCoreJSON['version'];
+    client.hSet('javascript_versions', 'synvert_version', synvertVersion);
+    client.hSet('javascript_versions', 'synvert_core_version', synvertCoreVersion);
+    client.expire('javascript_versions', ONE_DAY);
+  }
+  res.json({ synvert_version: synvertVersion, synvert_core_version: synvertCoreVersion });
+});
+
 /*******************
  * node-playground *
  *******************/
