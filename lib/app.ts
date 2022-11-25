@@ -88,7 +88,7 @@ app.get('/snippets', async (req: Request, res: Response) => {
   let response = await client.get(ALL_JAVASCRIPT_SNIPPETS);
   if (!response) {
     const snippets = await getSnippets();
-    response = JSON.stringify(snippets);
+    response = JSON.stringify({ snippets });
     await client.set(ALL_JAVASCRIPT_SNIPPETS, response);
     await client.expire(ALL_JAVASCRIPT_SNIPPETS, ONE_DAY);
   }
