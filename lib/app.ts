@@ -117,6 +117,14 @@ app.get('/check-versions', async (req: Request, res: Response) => {
   res.json({ synvert_version: synvertVersion, synvert_core_version: synvertCoreVersion });
 });
 
+app.post('/npmjs-webhook', async (req: Request, res: Response) => {
+  console.log(req.params.event, req.params.name, req.params.version)
+  if (req.params.event === "package:publish") {
+    client.hSet('javascript_versions', `${req.param.name.replace('-', '_')}_version`, req.params.version);
+  }
+  res.json({});
+});
+
 /*******************
  * node-playground *
  *******************/
