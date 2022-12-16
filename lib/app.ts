@@ -1,10 +1,10 @@
-import { createClient } from 'redis';
 import express, { Express, Request, Response, NextFunction } from 'express';
 import Rollbar from 'rollbar';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import morgan from 'morgan';
-import { generateAst, generateSnippet, parseSynvertSnippet, querySnippets, parseNql, mutateCode, getSnippets } from './api';
+import { redisClient } from './connection';
+import { generateAst, generateSnippet, parseSynvertSnippet, parseNql, mutateCode, getAllSnippetsJson, querySnippets } from './api';
 import { parseCode } from "./magic/utils";
 
 const port = Number(process.env.PORT) || 4000;
@@ -14,10 +14,7 @@ app.set('etag', false);
 app.use(cors())
 app.use(morgan('combined'))
 
-const ONE_DAY = 60 * 60 * 24;
 const SYNVERT_JAVASCRIPT_SNIPPETS_ETAG = "synvert-javascript-snippets-etag";
-const ALL_JAVASCRIPT_SNIPPETS = "all_javascript_snippets"
-const client = createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });
 
 const rollbar = new Rollbar({
   accessToken: process.env.ROLLBAR_ACCESS_TOKEN,
@@ -77,7 +74,7 @@ app.post('/generate-snippet', jsonParser, validateInputsOutputs, (req: Request, 
 
 app.get('/snippets', async (req: Request, res: Response) => {
   const clientEtag = req.get('If-None-Match');
-  const serverEtag = await client.get(SYNVERT_JAVASCRIPT_SNIPPETS_ETAG);
+  const serverEtag = await redisClient().get(SYNVERT_JAVASCRIPT_SNIPPETS_ETAG);
   if (clientEtag === serverEtag) {
     res.status(304).end();
     return
@@ -85,23 +82,21 @@ app.get('/snippets', async (req: Request, res: Response) => {
 
   res.set("ETag", serverEtag);
   res.set('Content-Type', 'application/json');
-  let response = await client.get(ALL_JAVASCRIPT_SNIPPETS);
-  if (!response) {
-    const snippets = await getSnippets();
-    response = JSON.stringify({ snippets });
-    await client.set(ALL_JAVASCRIPT_SNIPPETS, response);
-    await client.expire(ALL_JAVASCRIPT_SNIPPETS, ONE_DAY);
-  }
+  let response = await getAllSnippetsJson();
   res.send(response);
 });
 
+// it is deprecated, use /snippets instead and query on client side
 app.post('/query-snippets', jsonParser, async (req: Request, res: Response) => {
   const snippets = await querySnippets(req.body.query);
   res.json({ snippets });
 });
 
+const ONE_DAY = 60 * 60 * 24;
+const JAVASCRIPT_VERSIONS = 'javascript_versions';
+
 app.get('/check-versions', async (req: Request, res: Response) => {
-  const versions = await client.hGetAll("javascript_versions");
+  const versions = await redisClient().hGetAll(JAVASCRIPT_VERSIONS);
   let synvertVersion = versions['synvert_version'];
   let synvertCoreVersion = versions['synvert_core_version'];
   if (!synvertVersion || !synvertCoreVersion) {
@@ -111,8 +106,8 @@ app.get('/check-versions', async (req: Request, res: Response) => {
     const synvertCoreResponse = await fetch('https://registry.npmjs.org/synvert-core/latest');
     const synvertCoreJSON = await synvertCoreResponse.json();
     synvertCoreVersion = synvertCoreJSON['version'];
-    client.hSet('javascript_versions', { synvert_version: synvertVersion, synvert_core_version: synvertCoreVersion });
-    client.expire('javascript_versions', ONE_DAY);
+    await redisClient().hSet(JAVASCRIPT_VERSIONS, { synvert_version: synvertVersion, synvert_core_version: synvertCoreVersion });
+    await redisClient().expire(JAVASCRIPT_VERSIONS, ONE_DAY);
   }
   res.json({ synvert_version: synvertVersion, synvert_core_version: synvertCoreVersion });
 });
@@ -120,7 +115,7 @@ app.get('/check-versions', async (req: Request, res: Response) => {
 app.post('/npmjs-webhook', async (req: Request, res: Response) => {
   console.log(req.params.event, req.params.name, req.params.version)
   if (req.params.event === "package:publish") {
-    client.hSet('javascript_versions', `${req.param.name.replace('-', '_')}_version`, req.params.version);
+    await redisClient().hSet(JAVASCRIPT_VERSIONS, `${req.param.name.replace('-', '_')}_version`, req.params.version);
   }
   res.json({});
 });
@@ -156,7 +151,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 app.use(rollbar.errorHandler());
 
 (async() => {
-  await client.connect();
+  await redisClient().connect();
   app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
   });
