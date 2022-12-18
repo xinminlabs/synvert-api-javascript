@@ -9,7 +9,7 @@ import { databaseClient, redisClient } from './connection';
 import Magic from "./magic";
 import { NqlOrRules } from './magic/types';
 import { getFileName, parseCode } from "./magic/utils";
-import { Rewriter } from 'synvert-core';
+import { Rewriter, rewriteSnippetToSyncVersion } from 'synvert-core';
 import type { Location, Range, Snippet } from "./types";
 
 export const generateAst = (extension: string, code: string): any => {
@@ -22,8 +22,8 @@ export const parseSynvertSnippet = (extension: string, code: string, snippet: st
     parseCode(extension, snippet, false);
     const fileName = getFileName(extension);
     mock({ [fileName]: code });
-    const rewriter = eval(formatSnippet(extension, snippet));
-    rewriter.process();
+    const rewriter: Rewriter = eval(rewriteSnippetToSyncVersion(formatSnippet(extension, snippet)));
+    rewriter.processSync();
     return fs.readFileSync(fileName, 'utf-8');
   } finally {
     Rewriter.rewriters = {};
