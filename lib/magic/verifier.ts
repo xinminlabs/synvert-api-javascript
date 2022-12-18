@@ -1,7 +1,7 @@
 import debug from "debug";
 import fs from "fs";
 import mock from "mock-fs";
-import { Rewriter } from 'synvert-core';
+import { Rewriter, rewriteSnippetToSyncVersion } from 'synvert-core';
 import { getFileName } from "./utils";
 
 class Verifier {
@@ -24,10 +24,9 @@ class Verifier {
             });
           });
         `;
-        eval(snippet);
-        const rewriter = Rewriter.rewriters["group"]["name"];
+        const rewriter = eval(rewriteSnippetToSyncVersion(snippet));
         mock({ [fileName]: input });
-        rewriter.process();
+        rewriter.processSync();
         const actualOutput = fs.readFileSync(fileName, "utf-8");
         const expectedOutput = this.outputs[index];
         debug("synvert-api:verifier")(`actualOutput: ${actualOutput}`);
