@@ -100,7 +100,7 @@ export const parseNql = (
   nql: string,
   source: string
 ): Range[] => {
-  const node = parseCode(extension, source, true);
+  const node = parseFullCode(extension, source, true);
   const nodeQuery = new NodeQuery<ts.Node>(nql);
   const matchingNodes = nodeQuery.queryNodes(node);
   return matchingNodes.map((matchingNode) => {
@@ -118,7 +118,7 @@ export const mutateCode = (
   mutationCode: string
 ): ProcessResult => {
   parseCode(extension, mutationCode, true);
-  const node = parseCode(extension, source, true);
+  const node = parseFullCode(extension, source, true);
   const nodeQuery = new NodeQuery<ts.Node>(nql);
   const matchingNodes = nodeQuery.queryNodes(node);
   const nodeMutation = new NodeMutation<ts.Node>(source);
