@@ -12,6 +12,14 @@ import { getFileName, parseCode } from "./magic/utils";
 import { Rewriter, rewriteSnippetToSyncVersion } from 'synvert-core';
 import type { Location, Range, Snippet } from "./types";
 
+export const getTypescriptVersion = () => {
+  return ts.version;
+}
+
+export const getAllSyntaxKind = () => {
+  return ts.SyntaxKind;
+}
+
 export const generateAst = (extension: string, code: string): any => {
   return parseCode(extension, code, false);
 }

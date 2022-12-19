@@ -1,6 +1,18 @@
 import dedent from 'dedent';
-import { generateAst, parseSynvertSnippet, generateSnippet, parseNql, mutateCode } from '../lib/api';
+import { getTypescriptVersion, generateAst, parseSynvertSnippet, generateSnippet, parseNql, mutateCode, getAllSyntaxKind } from '../lib/api';
 import { NqlOrRules } from '../lib/magic/types';
+
+describe("getTypescriptVersion", () => {
+  it("gets typescript version", () => {
+    expect(getTypescriptVersion()).toEqual("4.9.3");
+  });
+});
+
+describe("getAllSyntaxKind", () => {
+  it("get all SyntaxKind", () => {
+    expect(getAllSyntaxKind()).not.toBeNull();
+  });
+});
 
 describe("genereteAst", () => {
   it("gets node from source code", () => {

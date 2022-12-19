@@ -4,7 +4,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import morgan from 'morgan';
 import { redisClient } from './connection';
-import { generateAst, generateSnippet, parseSynvertSnippet, parseNql, mutateCode, getAllSnippetsJson, querySnippets } from './api';
+import { generateAst, generateSnippet, parseSynvertSnippet, parseNql, mutateCode, getAllSnippetsJson, querySnippets, getAllSyntaxKind, getTypescriptVersion } from './api';
 import { parseCode } from "./magic/utils";
 
 const port = Number(process.env.PORT) || 4000;
@@ -51,6 +51,19 @@ const validateInputsOutputs = (req: Request, res: Response, next: NextFunction) 
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to Synvert!');
+});
+
+app.get('/syntax-kinds', (req: Request, res: Response) => {
+  const clientEtag = req.get('If-None-Match');
+  const serverEtag = getTypescriptVersion();
+  if (clientEtag === serverEtag) {
+    res.status(304).end();
+    return
+  }
+
+  res.set("ETag", serverEtag);
+  res.set('Content-Type', 'application/json');
+  res.json({ 'syntax_kinds': getAllSyntaxKind() });
 });
 
 app.post('/generate-ast', jsonParser, (req: Request, res: Response) => {
