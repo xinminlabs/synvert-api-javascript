@@ -17,7 +17,7 @@ export const getSource = (node: Node): string => {
   return typescriptAdapter.getSource(node);
 }
 
-export const parseCode = (extension: string, code: string, parent = true): Node => {
+export const parseFullCode = (extension: string, code: string, parent = true): Node => {
   const fileName = getFileName(extension);
   const scriptKind = getScriptKind(extension);
   const node = createSourceFile(fileName, code, ScriptTarget.Latest, parent, scriptKind);
@@ -26,7 +26,11 @@ export const parseCode = (extension: string, code: string, parent = true): Node 
   if (diagnotics.length > 0) {
     throw new SyntaxError(diagnotics[0].messageText.toString());
   }
-  return node.statements[0];
+  return node;
+}
+
+export const parseCode = (extension: string, code: string, parent = true): Node => {
+  return parseFullCode(extension, code, parent)["statements"][0];
 }
 
 export const getNodeType = (node: Node) => SyntaxKind[node.kind];

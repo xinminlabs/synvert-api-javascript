@@ -8,7 +8,7 @@ import NodeMutation, { ProcessResult } from "@xinminlabs/node-mutation";
 import { databaseClient, redisClient } from './connection';
 import Magic from "./magic";
 import { NqlOrRules } from './magic/types';
-import { getFileName, parseCode } from "./magic/utils";
+import { getFileName, parseCode, parseFullCode } from "./magic/utils";
 import { Rewriter, rewriteSnippetToSyncVersion } from 'synvert-core';
 import type { Location, Range, Snippet } from "./types";
 
@@ -21,7 +21,7 @@ export const getAllSyntaxKind = () => {
 }
 
 export const generateAst = (extension: string, code: string): any => {
-  return parseCode(extension, code, false);
+  return parseFullCode(extension, code, false);
 }
 
 export const parseSynvertSnippet = (extension: string, code: string, snippet: string): string => {
