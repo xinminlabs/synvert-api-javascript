@@ -49,6 +49,14 @@ const validateInputsOutputs = (req: Request, res: Response, next: NextFunction) 
   next();
 }
 
+const timeoutAfter = (seconds: number) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      reject(new Error("Timed out."));
+    }, seconds * 1000);
+  });
+}
+
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to Synvert!');
 });
@@ -76,12 +84,19 @@ app.post('/parse-synvert-snippet', jsonParser, (req: Request, res: Response) => 
   res.json({ output });
 });
 
-app.post('/generate-snippet', jsonParser, validateInputsOutputs, (req: Request, res: Response) => {
-  const snippet = generateSnippet(req.body.extension, req.body.inputs, req.body.outputs, req.body.nql_or_rules);
-  if (snippet) {
-    res.json({ snippet });
-  } else {
-    res.status(400).json({ error: 'Failed to generate the snippet!' });
+app.post('/generate-snippet', jsonParser, validateInputsOutputs, async (req: Request, res: Response) => {
+  try {
+    const snippet = await Promise.race([
+      generateSnippet(req.body.extension, req.body.inputs, req.body.outputs, req.body.nql_or_rules),
+      timeoutAfter(10)
+    ]);
+    if (snippet) {
+      res.json({ snippet });
+    } else {
+      res.status(400).json({ error: 'Failed to generate the snippet!' });
+    }
+  } catch {
+    res.status(400).json({ error: 'Timed out.'});
   }
 });
 
