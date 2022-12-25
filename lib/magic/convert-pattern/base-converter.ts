@@ -59,7 +59,7 @@ class BaseConverter {
    * @returns {[boolean, FakeNode|Node|null]} [found, replaced node]
    */
   protected findAndReplaceWith(node: Node, targetNode: Node, startPosition: number, fakeNodeName: string): [boolean, FakeNode | Node | null] {
-    const fakeNode = new FakeNode(`{{${fakeNodeName}}}`);
+    const fakeNode = new FakeNode(fakeNodeName);
     if (nodesEqual(node, targetNode)) {
       const range = getNodeRange(targetNode);
       fakeNode.range = { start: range.start - startPosition, end: range.end - startPosition };
@@ -140,12 +140,12 @@ class BaseConverter {
    */
    protected generateSourceCode(node: Node | FakeNode): string {
     if (node instanceof FakeNode) {
-      return node.name;
+      return node.toString();
     }
 
     let sourceCode = getSource(node);
     this.getAllFakeNodes(node).reverse().forEach(fakeNode => {
-      sourceCode = sourceCode.substring(0, fakeNode.range.start) + fakeNode.name + sourceCode.substring(fakeNode.range.end);
+      sourceCode = sourceCode.substring(0, fakeNode.range.start) + fakeNode.toString() + sourceCode.substring(fakeNode.range.end);
     });
     return sourceCode;
   }

@@ -52,7 +52,7 @@ describe("FindAndReplaceWithConverter", () => {
   describe("#generateSourceCode", () => {
     it("generates source code", () => {
       const node = parseJS("$.isArray(foo)")["expression"];
-      const fakeNode = new FakeNode("{{expression.name}}");
+      const fakeNode = new FakeNode("expression.name");
       converter["deepUpdated"](node, ["expression", "name"], fakeNode, 0);
       const sourceCode = converter["generateSourceCode"](node);
       expect(sourceCode).toEqual("$.{{expression.name}}(foo)");
@@ -66,7 +66,7 @@ describe("FindAndReplaceWithConverter", () => {
       const [found, fakeNode] = converter["findAndReplaceWith"](replacedNode, targetNode, 0, "expression");
       expect(found).toBeTruthy();
       expect(fakeNode).toBeInstanceOf(FakeNode);
-      expect((fakeNode as FakeNode).name).toEqual("{{expression}}");
+      expect((fakeNode as FakeNode).toString()).toEqual("{{expression}}");
     });
 
     it("found if target node is a sub target of replaced node", () => {
