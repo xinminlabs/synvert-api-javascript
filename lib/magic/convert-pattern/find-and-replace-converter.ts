@@ -64,7 +64,7 @@ class FindAndReplaceConverter extends BaseConverter {
           if (nodesEqual(inputChildNode, outputChildNode)) {
             return false;
           }
-          if (getChildKeys(getNodeType(inputChildNode)) !== getChildKeys(getNodeType(outputChildNode))) {
+          if (getNodeType(inputChildNode) !== getNodeType(outputChildNode)) {
             this.addReplaceResult(replaceKey, outputChildNode);
             return true;
           }
@@ -101,7 +101,7 @@ class FindAndReplaceConverter extends BaseConverter {
           if (nodesEqual(inputChildNode, outputChildNode)) {
             return false;
           }
-          if (getChildKeys(getNodeType(inputChildNode)) !== getChildKeys(getNodeType(outputChildNode))) {
+          if (getNodeType(inputChildNode) !== getNodeType(outputChildNode)) {
             this.addReplaceResult(replaceKey, outputChildNode);
             return true;
           }
