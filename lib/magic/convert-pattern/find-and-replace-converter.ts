@@ -2,7 +2,7 @@ import { Node } from "typescript";
 import clone from "clone";
 import BaseConverter from "./base-converter";
 import { BuilderNode } from "../builder";
-import { getNodeType, nodesEqual, isNode, getChildKeys, escapeString, getSource, getNodeRange } from "../utils";
+import { getNodeType, nodesEqual, isNode, getChildKeys, escapeString, getNodeRange } from "../utils";
 
 type ReplaceResult = {
   key: string
@@ -82,7 +82,7 @@ class FindAndReplaceConverter extends BaseConverter {
         }
         if (Array.isArray(inputChildNode) && Array.isArray(outputChildNode)) {
           if (this.replaceChildNode(inputChildNode, outputChildNode, replaceKey)) {
-            this.addReplaceResult(replaceKey, outputChildNode.map(childNode => getSource(childNode)).join(", "));
+            this.addReplaceResult(replaceKey, outputChildNode);
             return true;
           }
           return false;
@@ -147,13 +147,19 @@ class FindAndReplaceConverter extends BaseConverter {
     return patterns;
   }
 
-  private addReplaceResult(key: string, outputChildNode: string | Node) {
-    if (typeof outputChildNode === "string") {
-      this.replaceResults.push({ key, newCode: outputChildNode });
-    } else {
+  private addReplaceResult(key: string, outputChildNode: Node[] | Node | string) {
+    if (Array.isArray(outputChildNode)) {
+      const newCode = outputChildNode.map((childNode) => {
+        const replacedNode = this.replaceNode(clone(childNode), this.inputNodes[0], getNodeRange(childNode).start);
+        return this.generateSourceCode(replacedNode);
+      }).join(", ")
+      this.replaceResults.push({ key, newCode });
+    } else if (isNode(outputChildNode)) {
       const replacedNode = this.replaceNode(clone(outputChildNode), this.inputNodes[0], getNodeRange(outputChildNode).start);
       const newCode = this.generateSourceCode(replacedNode);
       this.replaceResults.push({ key, newCode });
+    } else {
+      this.replaceResults.push({ key, newCode: outputChildNode });
     }
   }
 }
