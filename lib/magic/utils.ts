@@ -3,8 +3,15 @@ import { createProgram, createSourceFile, Node, SyntaxKind, ScriptKind, ScriptTa
 import { KeyNotFoundError } from "./error";
 import { TypescriptAdapter } from "@xinminlabs/node-mutation"
 
-export const getFileName = (extension: string): string => {
-  return `code.${extension}`;
+export const getFileName = (language: string): string => {
+  switch (language) {
+    case "typescript":
+      return "code.ts";
+    case "javascript":
+      return "code.js";
+    default:
+      return "code.unknown";
+  }
 }
 
 const typescriptAdapter = new TypescriptAdapter();
@@ -17,9 +24,9 @@ export const getSource = (node: Node): string => {
   return typescriptAdapter.getSource(node);
 }
 
-export const parseFullCode = (extension: string, code: string, parent = true): Node => {
-  const fileName = getFileName(extension);
-  const scriptKind = getScriptKind(extension);
+export const parseFullCode = (language: string, code: string, parent = true): Node => {
+  const fileName = getFileName(language);
+  const scriptKind = getScriptKind(language);
   const node = createSourceFile(fileName, code, ScriptTarget.Latest, parent, scriptKind);
   const program = createProgram([fileName], {});
   const diagnotics = program.getSyntacticDiagnostics(node);
@@ -29,8 +36,8 @@ export const parseFullCode = (extension: string, code: string, parent = true): N
   return node;
 }
 
-export const parseCode = (extension: string, code: string, parent = true): Node => {
-  return parseFullCode(extension, code, parent)["statements"][0];
+export const parseCode = (language: string, code: string, parent = true): Node => {
+  return parseFullCode(language, code, parent)["statements"][0];
 }
 
 export const getNodeType = (node: Node) => SyntaxKind[node.kind];
@@ -104,13 +111,11 @@ const valuesEqual = (value1: any, value2: any): boolean => {
   }
 }
 
-const getScriptKind = (extension: string): ScriptKind => {
-  switch (extension) {
-    case "ts":
-    case "tsx":
+const getScriptKind = (language: string): ScriptKind => {
+  switch (language) {
+    case "typescript":
       return ScriptKind.TSX;
-    case "js":
-    case "jsx":
+    case "javascript":
       return ScriptKind.JSX;
     default:
       return ScriptKind.Unknown;

@@ -10,12 +10,12 @@ describe("Verifier", () => {
         replaceWith("Array.{{expression.name}}({{arguments.0}})");
       });
     `;
-    const verifier = new Verifier(snippet, "ts", inputs, outputs);
+    const verifier = new Verifier(snippet, "typescript", inputs, outputs);
     expect(verifier.call()).toBeTruthy();
   });
 
   it("returns true if outputs is empty", () => {
-    const verifier = new Verifier("", "ts", [], []);
+    const verifier = new Verifier("", "typescript", [], []);
     expect(verifier.call()).toBeTruthy();
   });
 });

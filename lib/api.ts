@@ -20,17 +20,17 @@ export const getAllSyntaxKind = () => {
   return ts.SyntaxKind;
 }
 
-export const generateAst = (extension: string, code: string): any => {
-  return parseFullCode(extension, code, false);
+export const generateAst = (language: string, code: string): any => {
+  return parseFullCode(language, code, false);
 }
 
-export const parseSynvertSnippet = (extension: string, code: string, snippet: string): string => {
+export const parseSynvertSnippet = (language: string, code: string, snippet: string): string => {
   try {
-    parseCode(extension, code, false);
-    parseCode(extension, snippet, false);
-    const fileName = getFileName(extension);
+    parseCode(language, code, false);
+    parseCode(language, snippet, false);
+    const fileName = getFileName(language);
     mock({ [fileName]: code });
-    const rewriter: Rewriter = eval(rewriteSnippetToSyncVersion(formatSnippet(extension, snippet)));
+    const rewriter: Rewriter = eval(rewriteSnippetToSyncVersion(formatSnippet(language, snippet)));
     rewriter.processSync();
     return fs.readFileSync(fileName, 'utf-8');
   } finally {
@@ -39,8 +39,8 @@ export const parseSynvertSnippet = (extension: string, code: string, snippet: st
   }
 }
 
-export const generateSnippet = (extension: string, inputs: string[], outputs: string[], nqlOrRules = NqlOrRules.nql): string => {
-  return Magic.call(extension, inputs, outputs, nqlOrRules);
+export const generateSnippet = (language: string, inputs: string[], outputs: string[], nqlOrRules = NqlOrRules.nql): string => {
+  return Magic.call(language, inputs, outputs, nqlOrRules);
 }
 
 const ONE_DAY = 60 * 60 * 24;
@@ -96,11 +96,11 @@ export const querySnippets = async (query: string): Promise<Snippet[]> => {
 // }
 
 export const parseNql = (
-  extension: string,
+  language: string,
   nql: string,
   source: string
 ): Range[] => {
-  const node = parseFullCode(extension, source, true);
+  const node = parseFullCode(language, source, true);
   const nodeQuery = new NodeQuery<ts.Node>(nql);
   const matchingNodes = nodeQuery.queryNodes(node);
   return matchingNodes.map((matchingNode) => {
@@ -112,13 +112,13 @@ export const parseNql = (
 };
 
 export const mutateCode = (
-  extension: string,
+  language: string,
   nql: string,
   source: string,
   mutationCode: string
 ): ProcessResult => {
-  parseCode(extension, mutationCode, true);
-  const node = parseFullCode(extension, source, true);
+  parseCode(language, mutationCode, true);
+  const node = parseFullCode(language, source, true);
   const nodeQuery = new NodeQuery<ts.Node>(nql);
   const matchingNodes = nodeQuery.queryNodes(node);
   const nodeMutation = new NodeMutation<ts.Node>(source);
@@ -147,7 +147,7 @@ const parseEndLocation = (node: ts.Node): Location => {
   return { line: line + 1, column: character + 1 };
 };
 
-const formatSnippet = (extension: string, snippet: string): string => {
+const formatSnippet = (language: string, snippet: string): string => {
   const input = snippet.trim();
   if (input.startsWith("const Synvert = require('synvert-core')")) {
     return snippet;
@@ -168,7 +168,7 @@ const formatSnippet = (extension: string, snippet: string): string => {
     `;
   }
 
-  const fileConstant = ["ts", "tsx"].includes(extension) ? "ALL_TS_FILES" : "ALL_JS_FILES";
+  const fileConstant = language === "typescript" ? "ALL_TS_FILES" : "ALL_JS_FILES";
   return `
     const Synvert = require("synvert-core");
     new Synvert.Rewriter("group", "name", () => {

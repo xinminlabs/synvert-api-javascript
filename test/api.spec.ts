@@ -17,13 +17,13 @@ describe("getAllSyntaxKind", () => {
 describe("genereteAst", () => {
   it("gets node from source code", () => {
     const code = "class Synvert {}";
-    const node = generateAst("ts", code)
+    const node = generateAst("typescript", code)
     expect(node).not.toBeNull();
   });
 
   it("raises error if source code is invalid", () => {
     const code = "class Synvert }";
-    expect(() => { generateAst("ts", code) }).toThrow(new SyntaxError("'{' expected."));
+    expect(() => { generateAst("typescript", code) }).toThrow(new SyntaxError("'{' expected."));
   });
 
   it("gets jsx node from source code", () => {
@@ -34,7 +34,7 @@ describe("genereteAst", () => {
         }
       }
     `
-    const node = generateAst("tsx", code)
+    const node = generateAst("typescript", code)
     expect(node).not.toBeNull();
   });
 });
@@ -53,7 +53,7 @@ describe("parseSynvertSnippet", () => {
         });
       });
     `;
-    const output = parseSynvertSnippet("js", code, snippet);
+    const output = parseSynvertSnippet("javascript", code, snippet);
     expect(output).toEqual("'use strict'\nclass Synvert {}");
   });
 
@@ -69,7 +69,7 @@ describe("parseSynvertSnippet", () => {
         });
       });
     `;
-    const output = parseSynvertSnippet("js", code, snippet);
+    const output = parseSynvertSnippet("javascript", code, snippet);
     expect(output).toEqual("'use strict'\nclass Synvert {}");
   });
 
@@ -82,7 +82,7 @@ describe("parseSynvertSnippet", () => {
         });
       });
     `;
-    const output = parseSynvertSnippet("js", code, snippet);
+    const output = parseSynvertSnippet("javascript", code, snippet);
     expect(output).toEqual("'use strict'\nclass Synvert {}");
   });
 
@@ -93,7 +93,7 @@ describe("parseSynvertSnippet", () => {
         insert("'use strict'\\n", { at: "beginning" });
       });
     `;
-    const output = parseSynvertSnippet("js", code, snippet);
+    const output = parseSynvertSnippet("javascript", code, snippet);
     expect(output).toEqual("'use strict'\nclass Synvert {}");
   });
 
@@ -104,7 +104,7 @@ describe("parseSynvertSnippet", () => {
         insert("'use strict'\\n", { at: "beginning" });
       });
     `;
-    expect(() => { parseSynvertSnippet("js", code, snippet) }).toThrow(new SyntaxError("'{' expected."));
+    expect(() => { parseSynvertSnippet("javascript", code, snippet) }).toThrow(new SyntaxError("'{' expected."));
   });
 
   it("raises error if snippet is invalid", () => {
@@ -114,16 +114,16 @@ describe("parseSynvertSnippet", () => {
         insert("'use strict'\\n", { at: "beginning" });
       });
     `;
-    expect(() => { parseSynvertSnippet("js", code, snippet) }).toThrow(new SyntaxError("')' expected."));
+    expect(() => { parseSynvertSnippet("javascript", code, snippet) }).toThrow(new SyntaxError("')' expected."));
   });
 });
 
 describe("genereteSnippet", () => {
   it("gets snippet with rules", () => {
-    const extension = "ts";
+    const language = "typescript";
     const inputs = ["$.isArray(foo)", "$.isArray(bar)"];
     const outputs = ["Array.isArray(foo)", "Array.isArray(bar)"];
-    expect(generateSnippet(extension, inputs, outputs, NqlOrRules.rules)).toEqual(dedent`
+    expect(generateSnippet(language, inputs, outputs, NqlOrRules.rules)).toEqual(dedent`
       withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { 0: { nodeType: "Identifier" }, length: 1 } }, () => {
         replace("expression.expression", { with: "Array" });
       });
@@ -131,10 +131,10 @@ describe("genereteSnippet", () => {
   });
 
   it("gets snippet with nql", () => {
-    const extension = "ts";
+    const language = "typescript";
     const inputs = ["$.isArray(foo)", "$.isArray(bar)"];
     const outputs = ["Array.isArray(foo)", "Array.isArray(bar)"];
-    expect(generateSnippet(extension, inputs, outputs, NqlOrRules.nql)).toEqual(dedent`
+    expect(generateSnippet(language, inputs, outputs, NqlOrRules.nql)).toEqual(dedent`
       findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.0=.Identifier][arguments.length=1]\`, () => {
         replace("expression.expression", { with: "Array" });
       });

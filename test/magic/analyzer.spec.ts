@@ -8,7 +8,7 @@ describe("Analyzer", () => {
       it("gets pattern", () => {
         const inputs = ["$.isArray(foo)", "$.isArray(bar)"];
         const outputs = ["Array.isArray(foo)", "Array.isArray(bar)"];
-        const analyzer = new Analyzer("ts", inputs, outputs, NqlOrRules.rules);
+        const analyzer = new Analyzer("typescript", inputs, outputs, NqlOrRules.rules);
         const expected = [
           dedent`
             withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { 0: { nodeType: "Identifier" }, length: 1 } }, () => {
@@ -37,7 +37,7 @@ describe("Analyzer", () => {
             foobar
           </Container>
         `];
-        const analyzer = new Analyzer("tsx", inputs, outputs, NqlOrRules.rules);
+        const analyzer = new Analyzer("typescript", inputs, outputs, NqlOrRules.rules);
         const expected = [
           dedent`
             withNode({ nodeType: "JsxElement", openingElement: { nodeType: "JsxOpeningElement", tagName: "div", attributes: { nodeType: "JsxAttributes", properties: { 0: { nodeType: "JsxAttribute", name: "className", initializer: { nodeType: "StringLiteral", text: "container-fluid" } }, length: 1 } } }, children: { 0: "foobar", length: 1 }, closingElement: { nodeType: "JsxClosingElement", tagName: "div" } }, () => {
@@ -59,7 +59,7 @@ describe("Analyzer", () => {
       it("gets pattern", () => {
         const inputs = [`const x: Array<string> = ['a', 'b'];`, `const y: Array<string> = ['c', 'd'];`];
         const outputs = [`const x: string[] = ['a', 'b'];`, `const y: string[] = ['c', 'd'];`];
-        const analyzer = new Analyzer("ts", inputs, outputs, NqlOrRules.rules);
+        const analyzer = new Analyzer("typescript", inputs, outputs, NqlOrRules.rules);
         const expected = [
           dedent`
             withNode({ nodeType: "FirstStatement", declarationList: { nodeType: "VariableDeclarationList", declarations: { 0: { nodeType: "VariableDeclaration", name: { nodeType: "Identifier" }, initializer: { nodeType: "ArrayLiteralExpression", elements: { 0: { nodeType: "StringLiteral" }, 1: { nodeType: "StringLiteral" }, length: 2 } }, type: { nodeType: "TypeReference", typeName: "Array", typeArguments: { 0: { nodeType: "StringKeyword" }, length: 1 } } }, length: 1 } } }, () => {
@@ -80,7 +80,7 @@ describe("Analyzer", () => {
       it("gets pattern", () => {
         const inputs = [`const x: Array<string | number> = ['a', 'b'];`, `const y: Array<string | number> = ['c', 'd'];`];
         const outputs = [`const x: (string | number)[] = ['a', 'b'];`, `const y: (string | number)[] = ['c', 'd'];`];
-        const analyzer = new Analyzer("ts", inputs, outputs, NqlOrRules.rules);
+        const analyzer = new Analyzer("typescript", inputs, outputs, NqlOrRules.rules);
         const expected = [
           dedent`
             withNode({ nodeType: "FirstStatement", declarationList: { nodeType: "VariableDeclarationList", declarations: { 0: { nodeType: "VariableDeclaration", name: { nodeType: "Identifier" }, initializer: { nodeType: "ArrayLiteralExpression", elements: { 0: { nodeType: "StringLiteral" }, 1: { nodeType: "StringLiteral" }, length: 2 } }, type: { nodeType: "TypeReference", typeName: "Array", typeArguments: { 0: { nodeType: "UnionType", types: { 0: { nodeType: "StringKeyword" }, 1: { nodeType: "NumberKeyword" }, length: 2 } }, length: 1 } } }, length: 1 } } }, () => {

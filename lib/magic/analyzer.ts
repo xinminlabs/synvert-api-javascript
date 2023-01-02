@@ -7,11 +7,11 @@ import { parseCode } from "./utils";
 const SKIP_NODE_TYPE = "expression";
 
 class Analyzer {
-  constructor(private extension, private inputs: string[], private outputs: string[], private nqlOrRules: NqlOrRules) {}
+  constructor(private language, private inputs: string[], private outputs: string[], private nqlOrRules: NqlOrRules) {}
 
   call() {
-    let inputNodes = this.inputs.map(input => parseCode(this.extension, input));
-    let outputNodes = this.outputs.map(output => parseCode(this.extension, output));
+    let inputNodes = this.inputs.map(input => parseCode(this.language, input));
+    let outputNodes = this.outputs.map(output => parseCode(this.language, output));
     if (inputNodes.every(node => node && node.kind === SyntaxKind.ExpressionStatement)) {
       inputNodes = inputNodes.map(node => node[SKIP_NODE_TYPE]);
     }

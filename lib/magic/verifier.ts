@@ -5,7 +5,7 @@ import { Rewriter, rewriteSnippetToSyncVersion } from 'synvert-core';
 import { getFileName } from "./utils";
 
 class Verifier {
-  constructor(private snippet: string, private extension: string, private inputs: string[], private outputs: string[]) { }
+  constructor(private snippet: string, private language: string, private inputs: string[], private outputs: string[]) { }
 
   call(): boolean {
     if (this.outputs.length === 0) {
@@ -14,7 +14,7 @@ class Verifier {
 
     try {
       return this.inputs.every((input, index) => {
-        const fileName = getFileName(this.extension);
+        const fileName = getFileName(this.language);
         const snippet = `
           const Synvert = require("synvert-core");
           new Synvert.Rewriter("group", "name", () => {
