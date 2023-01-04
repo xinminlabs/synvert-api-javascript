@@ -4,11 +4,13 @@ import FindAndReplaceWithConverter from "./convert-pattern/find-and-replace-with
 import NoopConverter from "./convert-pattern/noop-converter";
 import RemoveConverter from "./convert-pattern/remove-converter";
 import InsertConverter from "./convert-pattern/insert-converter";
+import DeleteConverter from "./convert-pattern/delete-converter";
 
 export const PATTERNS = {
   noop: NoopConverter,
   remove: RemoveConverter,
   insert: InsertConverter,
+  delete: DeleteConverter,
   findAndReplace: FindAndReplaceConverter,
   findAndReplaceWith: FindAndReplaceWithConverter,
 }

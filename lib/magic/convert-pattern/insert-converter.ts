@@ -21,7 +21,7 @@ class InsertConverter extends BaseConverter {
     if (this.inputNodes.every(node => typeof node === "undefined")) {
       const outputSource = escapeString(this.outputNodes[0].getFullText());
       this.builderNode.addConvertPattern(`insert(${outputSource}, { at: "beginning" });`);
-      return
+      return;
     }
 
     const firstInputNode = this.inputNodes[0];
