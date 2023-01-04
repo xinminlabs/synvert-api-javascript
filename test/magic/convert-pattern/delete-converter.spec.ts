@@ -13,7 +13,7 @@ describe("DeleteConverter", () => {
       );
       converter.call();
       expect(builderNode["children"].length).toEqual(1);
-      expect(builderNode["children"][0].generateSnippet()).toEqual(`delete("attributes.properties.-1");`);
+      expect(builderNode["children"][0].generateSnippet()).toEqual(`deleteNode("attributes.properties.-1");`);
     })
   });
 });
