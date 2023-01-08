@@ -28,7 +28,7 @@ class DeleteConverter extends BaseConverter {
     this.builderNode.addConvertPattern(pattern);
   }
 
-  iterateNodes(inputNode: Node | Node[], outputNode: Node | Node[], key?: string) {
+  private iterateNodes(inputNode: Node | Node[], outputNode: Node | Node[], key?: string) {
     if (Array.isArray(inputNode) && Array.isArray(outputNode)) {
       if (outputNode.length >= inputNode.length) {
         return;
@@ -45,7 +45,7 @@ class DeleteConverter extends BaseConverter {
       }
       if (deleteIndices.length === inputNode.length - outputNode.length) {
         deleteIndices.forEach((inputIndex) => {
-          const index = inputIndex === inputNode.length - 1? -1 : inputIndex;
+          const index = inputIndex === inputNode.length - 1 ? -1 : inputIndex;
           this.deleteResults.push(key ? `${key}.${index}` : index.toString());
         });
       }
