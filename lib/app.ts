@@ -46,7 +46,25 @@ const validateInputsOutputs = (req: Request, res: Response, next: NextFunction) 
   } catch (e) {
     return res.status(400).json({ error: "Outputs are invalid." });
   }
+  const [inputs, outputs] = formatInputsOutputs(req)
+  if (inputs.length === 0 && outputs.length === 0) {
+    return res.status(400).json({ error: "Inputs and outputs can not be empty string." });
+  }
   next();
+}
+
+const formatInputsOutputs = (req: Request): [inputs: string[], outputs: string[]] => {
+  const inputs: string[] = req.body.inputs;
+  const outputs: string[] = req.body.outputs;
+  while (true) {
+    if (inputs[inputs.length - 1].length === 0 && outputs[outputs.length - 1].length === 0) {
+      inputs.pop();
+      outputs.pop();
+    } else {
+      break;
+    }
+  }
+  return [inputs, outputs];
 }
 
 const timeoutAfter = (seconds: number) => {
@@ -86,8 +104,9 @@ app.post('/parse-synvert-snippet', jsonParser, (req: Request, res: Response) => 
 
 app.post('/generate-snippet', jsonParser, validateInputsOutputs, async (req: Request, res: Response) => {
   try {
+    const [inputs, outputs] = formatInputsOutputs(req);
     const snippet = await Promise.race([
-      generateSnippet(req.body.language, req.body.inputs, req.body.outputs, req.body.nql_or_rules),
+      generateSnippet(req.body.language, inputs, outputs, req.body.nql_or_rules),
       timeoutAfter(10)
     ]);
     if (snippet) {
