@@ -34,7 +34,7 @@ describe("Magic", () => {
       const outputs = ["Array.isArray(foo)", "Array.isArray(bar)"];
       const snippet = Magic.call(language, inputs, outputs, NqlOrRules.nql);
       expect(snippet).toEqual(dedent`
-        findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.0=.Identifier][arguments.length=1]\`, () => {
+        findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.length=1][arguments.0=.Identifier]\`, () => {
           replace("expression.expression", { with: "Array" });
         });
       `);
@@ -89,7 +89,7 @@ describe("Magic", () => {
       const outputs = ["[...string]", "[...str]"];
       const snippet = Magic.call(language, inputs, outputs, NqlOrRules.nql);
       expect(snippet).toEqual(dedent`
-        findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=.Identifier][name=split]][arguments.0=.StringLiteral[text=""]][arguments.length=1]\`, () => {
+        findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=.Identifier][name=split]][arguments.length=1][arguments.0=.StringLiteral[text=""]]\`, () => {
           replaceWith("[...{{expression.expression}}]");
         });
       `);

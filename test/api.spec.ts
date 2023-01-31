@@ -135,7 +135,7 @@ describe("genereteSnippet", () => {
     const inputs = ["$.isArray(foo)", "$.isArray(bar)"];
     const outputs = ["Array.isArray(foo)", "Array.isArray(bar)"];
     expect(generateSnippet(language, inputs, outputs, NqlOrRules.nql)).toEqual(dedent`
-      findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.0=.Identifier][arguments.length=1]\`, () => {
+      findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.length=1][arguments.0=.Identifier]\`, () => {
         replace("expression.expression", { with: "Array" });
       });
     `);

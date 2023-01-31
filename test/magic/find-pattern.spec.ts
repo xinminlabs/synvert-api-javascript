@@ -21,7 +21,7 @@ describe("FindPattern", () => {
       const outputNodes = [parseJS("Array.isArray(foo)")["expression"], parseJS("Array.isArray(bar)")["expression"]];
       const findPattern = new FindPattern(inputNodes, outputNodes, NqlOrRules.nql, () => {});
       const expected = dedent`
-        findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.0=.Identifier][arguments.length=1]\`, () => {
+        findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.length=1][arguments.0=.Identifier]\`, () => {
         });
       `;
       expect(findPattern.call()).toEqual([expected]);

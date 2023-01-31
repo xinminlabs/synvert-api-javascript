@@ -20,7 +20,7 @@ describe("Builder", () => {
           }
         }, () => {});
       });
-      const expected = "findNode(`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.0=.Identifier][arguments.length=1]`, () => {\n});";
+      const expected = "findNode(`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.length=1][arguments.0=.Identifier]`, () => {\n});";
       expect(snippets).toEqual([expected]);
     });
   });
