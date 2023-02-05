@@ -150,7 +150,7 @@ class FindPatternFindNode extends BuilderNode {
           });
         }
       } else {
-        if (typeof value === "string" && (value.includes("-") || value.length === 0)) {
+        if (typeof value === "string" && (value.length === 0 || ["-", ":"].some((char) => value.includes(char)))) {
           nqlArray.push(`[${key}="${value}"]`);
         } else {
           nqlArray.push(`[${key}=${value}]`);
