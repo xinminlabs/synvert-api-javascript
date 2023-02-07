@@ -16,7 +16,6 @@ class Verifier {
       return this.inputs.every((input, index) => {
         const fileName = getFileName(this.language);
         const snippet = `
-          const Synvert = require("synvert-core");
           new Synvert.Rewriter("group", "name", () => {
             configure({ parser: Synvert.Parser.TYPESCRIPT });
             withinFile("${fileName}", () => {

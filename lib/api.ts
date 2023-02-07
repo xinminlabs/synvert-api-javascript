@@ -1,8 +1,8 @@
-import { QueryTypes } from 'sequelize';
 import { VM } from "vm2";
 import ts from 'typescript';
 import fs from 'fs';
 import mock from 'mock-fs';
+import { QueryTypes } from "sequelize";
 import NodeQuery from "@xinminlabs/node-query";
 import NodeMutation, { ProcessResult } from "@xinminlabs/node-mutation";
 import { databaseClient, redisClient } from './connection';
@@ -156,11 +156,10 @@ const formatSnippet = (language: string, snippet: string): string => {
     return snippet;
   }
   if (input.startsWith("new Synvert.Rewriter(")) {
-    return `const Synvert = require("synvert-core");\n` + snippet;
+    return snippet;
   }
   if (input.startsWith("withinFiles")) {
     return `
-      const Synvert = require("synvert-core");
       new Synvert.Rewriter("group", "name", () => {
         configure({ parser: Synvert.Parser.TYPESCRIPT });
         ${snippet}
@@ -170,7 +169,6 @@ const formatSnippet = (language: string, snippet: string): string => {
 
   const fileConstant = language === "typescript" ? "ALL_TS_FILES" : "ALL_JS_FILES";
   return `
-    const Synvert = require("synvert-core");
     new Synvert.Rewriter("group", "name", () => {
       configure({ parser: Synvert.Parser.TYPESCRIPT });
       withinFiles(Synvert.${fileConstant}, function () {
