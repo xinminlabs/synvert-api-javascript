@@ -1,8 +1,8 @@
+import { QueryTypes } from "sequelize";
 import { VM } from "vm2";
 import ts from 'typescript';
 import fs from 'fs';
 import mock from 'mock-fs';
-import { QueryTypes } from "sequelize";
 import NodeQuery from "@xinminlabs/node-query";
 import NodeMutation, { ProcessResult } from "@xinminlabs/node-mutation";
 import { databaseClient, redisClient } from './connection';

@@ -114,8 +114,8 @@ app.post('/generate-snippet', jsonParser, validateInputsOutputs, async (req: Req
     } else {
       res.status(400).json({ error: 'Failed to generate the snippet!' });
     }
-  } catch {
-    res.status(400).json({ error: 'Timed out.'});
+  } catch (e) {
+    res.status(400).json({ error: e.message });
   }
 });
 
