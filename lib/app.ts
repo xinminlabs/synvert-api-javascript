@@ -33,18 +33,18 @@ const validateInputsOutputs = (req: Request, res: Response, next: NextFunction) 
     return res.status(400).json({ error: "Inputs size is not equal to outputs size." });
   }
   try {
-    if (req.body.inputs.some(input => typeof parseCode(req.body.language, input) === "undefined")) {
-      return res.status(400).json({ error: "Inputs are invalid." });
+    for (let input of req.body.inputs) {
+      parseCode(req.body.language, input);
     }
   } catch (e) {
-    return res.status(400).json({ error: "Inputs are invalid." });
+    return res.status(400).json({ error: e.message });
   }
   try {
-    if (req.body.outputs.some(output => typeof parseCode(req.body.language, output) === "undefined")) {
-      return res.status(400).json({ error: "Outputs are invalid." });
+    for (let output of req.body.outputs) {
+      parseCode(req.body.language, output);
     }
   } catch (e) {
-    return res.status(400).json({ error: "Outputs are invalid." });
+    return res.status(400).json({ error: e.message });
   }
   const [inputs, outputs] = formatInputsOutputs(req)
   if (inputs.length === 0 && outputs.length === 0) {
