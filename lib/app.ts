@@ -4,7 +4,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import morgan from 'morgan';
 import { redisClient } from './connection';
-import { generateAst, generateSnippet, parseSynvertSnippet, parseNql, mutateCode, getAllSnippetsJson, querySnippets, getAllSyntaxKind, getTypescriptVersion } from './api';
+import { generateAst, generateSnippet, parseSynvertSnippet, parseNql, mutateCode, getAllJavascriptSnippetsJson, getAllTypescriptSnippetsJson, getAllSyntaxKind, getTypescriptVersion } from './api';
 import { parseCode } from "./magic/utils";
 
 const port = Number(process.env.PORT) || 4000;
@@ -15,6 +15,7 @@ app.use(cors())
 app.use(morgan('combined'))
 
 const SYNVERT_JAVASCRIPT_SNIPPETS_ETAG = "synvert-javascript-snippets-etag";
+const SYNVERT_TYPESCRIPT_SNIPPETS_ETAG = "synvert-typescript-snippets-etag";
 
 const rollbar = new Rollbar({
   accessToken: process.env.ROLLBAR_ACCESS_TOKEN,
@@ -120,8 +121,9 @@ app.post('/generate-snippet', jsonParser, validateInputsOutputs, async (req: Req
 });
 
 app.get('/snippets', async (req: Request, res: Response) => {
+  const language = req.query.language;
   const clientEtag = req.get('If-None-Match');
-  const serverEtag = await redisClient().get(SYNVERT_JAVASCRIPT_SNIPPETS_ETAG);
+  const serverEtag = await redisClient().get(language === "typescript" ? SYNVERT_TYPESCRIPT_SNIPPETS_ETAG : SYNVERT_JAVASCRIPT_SNIPPETS_ETAG);
   if (clientEtag === serverEtag) {
     res.status(304).end();
     return
@@ -129,7 +131,7 @@ app.get('/snippets', async (req: Request, res: Response) => {
 
   res.set("ETag", serverEtag);
   res.set('Content-Type', 'application/json');
-  let response = await getAllSnippetsJson();
+  let response = await (language === "typescript" ? getAllTypescriptSnippetsJson : getAllJavascriptSnippetsJson)();
   res.send(response);
 });
 

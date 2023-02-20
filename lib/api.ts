@@ -10,7 +10,7 @@ import Magic from "./magic";
 import { NqlOrRules } from './magic/types';
 import { getFileName, parseCode, parseFullCode } from "./magic/utils";
 import { Rewriter, rewriteSnippetToSyncVersion } from 'synvert-core';
-import type { Location, Range, Snippet } from "./types";
+import type { Location, Range } from "./types";
 
 export const getTypescriptVersion = () => {
   return ts.version;
@@ -45,11 +45,12 @@ export const generateSnippet = (language: string, inputs: string[], outputs: str
 
 const ONE_DAY = 60 * 60 * 24;
 const ALL_JAVASCRIPT_SNIPPETS = "all_javascript_snippets";
+const ALL_TYPESCRIPT_SNIPPETS = "all_typescript_snippets";
 
-export const getAllSnippetsJson = async (): Promise<string> => {
+export const getAllJavascriptSnippetsJson = async (): Promise<string> => {
   let response = await redisClient().get(ALL_JAVASCRIPT_SNIPPETS);
   if (!response) {
-    const snippets = await databaseClient().query("SELECT * FROM javascript_snippets", { type: QueryTypes.SELECT });
+    const snippets = await databaseClient().query(`SELECT * FROM javascript_snippets WHERE "group" != 'typescript'`, { type: QueryTypes.SELECT });
     response = JSON.stringify({ snippets });
     await redisClient().set(ALL_JAVASCRIPT_SNIPPETS, response);
     await redisClient().expire(ALL_JAVASCRIPT_SNIPPETS, ONE_DAY);
@@ -57,13 +58,15 @@ export const getAllSnippetsJson = async (): Promise<string> => {
   return response;
 }
 
-export const querySnippets = async (query: string): Promise<Snippet[]> => {
-  const response: { snippets: Snippet[] } = JSON.parse(await getAllSnippetsJson());
-  return response.snippets.filter(snippet => (
-    snippet.name.toLowerCase().includes(query.toLowerCase()) ||
-      snippet.group.toLowerCase().includes(query.toLowerCase()) ||
-      (snippet.description && snippet.description.toLowerCase().includes(query.toLowerCase()))
-  ));
+export const getAllTypescriptSnippetsJson = async (): Promise<string> => {
+  let response = await redisClient().get(ALL_TYPESCRIPT_SNIPPETS);
+  if (!response) {
+    const snippets = await databaseClient().query("SELECT * FROM javascript_snippets", { type: QueryTypes.SELECT });
+    response = JSON.stringify({ snippets });
+    await redisClient().set(ALL_TYPESCRIPT_SNIPPETS, response);
+    await redisClient().expire(ALL_TYPESCRIPT_SNIPPETS, ONE_DAY);
+  }
+  return response;
 }
 
 // export const querySnippets = async (query: string): Promise<Snippet[]> => {
