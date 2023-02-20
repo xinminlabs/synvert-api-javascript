@@ -134,10 +134,10 @@ app.get('/snippets', async (req: Request, res: Response) => {
 });
 
 // it is deprecated, use /snippets instead and query on client side
-app.post('/query-snippets', jsonParser, async (req: Request, res: Response) => {
-  const snippets = await querySnippets(req.body.query);
-  res.json({ snippets });
-});
+// app.post('/query-snippets', jsonParser, async (req: Request, res: Response) => {
+//   const snippets = await querySnippets(req.body.query);
+//   res.json({ snippets });
+// });
 
 const ONE_DAY = 60 * 60 * 24;
 const JAVASCRIPT_VERSIONS = 'javascript_versions';

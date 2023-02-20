@@ -66,6 +66,15 @@ export const querySnippets = async (query: string): Promise<Snippet[]> => {
   ));
 }
 
+// export const querySnippets = async (query: string): Promise<Snippet[]> => {
+//   const response: { snippets: Snippet[] } = JSON.parse(await getAllSnippetsJson());
+//   return response.snippets.filter(snippet => (
+//     snippet.name.toLowerCase().includes(query.toLowerCase()) ||
+//       snippet.group.toLowerCase().includes(query.toLowerCase()) ||
+//       (snippet.description && snippet.description.toLowerCase().includes(query.toLowerCase()))
+//   ));
+// }
+
 // export const querySnippets = async (query: string): Promise<object[]> => {
 //   const result = await client.search({ index: 'synvert-javascript-snippets',
 //     body: {
