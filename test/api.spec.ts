@@ -1,5 +1,5 @@
 import dedent from 'dedent';
-import { getTypescriptVersion, generateAst, parseSynvertSnippet, generateSnippet, parseNql, mutateCode, getAllSyntaxKind } from '../lib/api';
+import { getTypescriptVersion, generateAst, parseSynvertSnippet, generateSnippets, parseNql, mutateCode, getAllSyntaxKind } from '../lib/api';
 import { NqlOrRules } from '../lib/magic/types';
 
 describe("getTypescriptVersion", () => {
@@ -118,27 +118,35 @@ describe("parseSynvertSnippet", () => {
   });
 });
 
-describe("genereteSnippet", () => {
+describe("genereteSnippets", () => {
   it("gets snippet with rules", () => {
     const language = "typescript";
     const inputs = ["$.isArray(foo)", "$.isArray(bar)"];
     const outputs = ["Array.isArray(foo)", "Array.isArray(bar)"];
-    expect(generateSnippet(language, inputs, outputs, NqlOrRules.rules)).toEqual(dedent`
+    expect(generateSnippets(language, inputs, outputs, NqlOrRules.rules)).toEqual([dedent`
       withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { 0: { nodeType: "Identifier" }, length: 1 } }, () => {
         replace("expression.expression", { with: "Array" });
       });
-    `);
+    `, dedent`
+      withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { 0: { nodeType: "Identifier" }, length: 1 } }, () => {
+        replaceWith("Array.{{expression.name}}({{arguments.0}})");
+      });
+    `]);
   });
 
   it("gets snippet with nql", () => {
     const language = "typescript";
     const inputs = ["$.isArray(foo)", "$.isArray(bar)"];
     const outputs = ["Array.isArray(foo)", "Array.isArray(bar)"];
-    expect(generateSnippet(language, inputs, outputs, NqlOrRules.nql)).toEqual(dedent`
+    expect(generateSnippets(language, inputs, outputs, NqlOrRules.nql)).toEqual([dedent`
       findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.length=1][arguments.0=.Identifier]\`, () => {
         replace("expression.expression", { with: "Array" });
       });
-    `);
+    `, dedent`
+      findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.length=1][arguments.0=.Identifier]\`, () => {
+        replaceWith("Array.{{expression.name}}({{arguments.0}})");
+      });
+    `]);
   });
 });
 

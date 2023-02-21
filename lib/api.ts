@@ -39,7 +39,7 @@ export const parseSynvertSnippet = (language: string, code: string, snippet: str
   }
 }
 
-export const generateSnippet = (language: string, inputs: string[], outputs: string[], nqlOrRules = NqlOrRules.nql): string => {
+export const generateSnippets = (language: string, inputs: string[], outputs: string[], nqlOrRules = NqlOrRules.nql): string[] => {
   return Magic.call(language, inputs, outputs, nqlOrRules);
 }
 

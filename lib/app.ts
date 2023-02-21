@@ -4,7 +4,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import morgan from 'morgan';
 import { redisClient } from './connection';
-import { generateAst, generateSnippet, parseSynvertSnippet, parseNql, mutateCode, getAllJavascriptSnippetsJson, getAllTypescriptSnippetsJson, getAllSyntaxKind, getTypescriptVersion } from './api';
+import { generateAst, generateSnippets, parseSynvertSnippet, parseNql, mutateCode, getAllJavascriptSnippetsJson, getAllTypescriptSnippetsJson, getAllSyntaxKind, getTypescriptVersion } from './api';
 import { parseCode } from "./magic/utils";
 
 const port = Number(process.env.PORT) || 4000;
@@ -106,12 +106,12 @@ app.post('/parse-synvert-snippet', jsonParser, (req: Request, res: Response) => 
 app.post('/generate-snippet', jsonParser, validateInputsOutputs, async (req: Request, res: Response) => {
   try {
     const [inputs, outputs] = formatInputsOutputs(req);
-    const snippet = await Promise.race([
-      generateSnippet(req.body.language, inputs, outputs, req.body.nql_or_rules),
+    const snippets = await Promise.race<string[] | Promise<any>>([
+      generateSnippets(req.body.language, inputs, outputs, req.body.nql_or_rules),
       timeoutAfter(10)
     ]);
-    if (snippet) {
-      res.json({ snippet });
+    if (snippets.length > 0) {
+      res.json({ snippet: snippets[0], snippets });
     } else {
       res.status(400).json({ error: 'Failed to generate the snippet!' });
     }

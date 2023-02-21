@@ -4,10 +4,10 @@ import { NqlOrRules } from "./magic/types";
 import Verifier from "./magic/verifier";
 
 class Magic {
-  static call(language: string, inputs: string[], outputs: string[], nqlOrRules: NqlOrRules): string {
+  static call(language: string, inputs: string[], outputs: string[], nqlOrRules: NqlOrRules): string[] {
     const snippets = new Analyzer(language, inputs, outputs, nqlOrRules).call()
     snippets.forEach(snippet => debug("synvert-api:analyzer")(`snippet: ${snippet}`));
-    return snippets.find(snippet => new Verifier(snippet, language, inputs, outputs).call());
+    return snippets.filter(snippet => new Verifier(snippet, language, inputs, outputs).call());
   }
 }
 
