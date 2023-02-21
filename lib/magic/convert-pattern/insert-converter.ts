@@ -41,7 +41,9 @@ class InsertConverter extends BaseConverter {
         return;
       }
       const insertIndices = [];
-      for (let inputIndex = 0, outputIndex = 0; inputIndex < inputNode.length || outputIndex < outputNode.length;) {
+      let inputIndex = 0;
+      let outputIndex = 0;
+      while (true) {
         if (nodesEqual(outputNode[outputIndex], inputNode[inputIndex])) {
           outputIndex++;
           inputIndex++;
@@ -49,6 +51,9 @@ class InsertConverter extends BaseConverter {
         }
         insertIndices.push({ outputIndex, inputIndex });
         outputIndex++;
+        if (outputIndex >= outputNode.length) {
+          break;
+        }
       }
       if (insertIndices.length === outputNode.length - inputNode.length) {
         insertIndices.forEach(({ outputIndex, inputIndex }) => {
