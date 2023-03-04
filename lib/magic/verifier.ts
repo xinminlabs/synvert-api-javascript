@@ -4,6 +4,8 @@ import mock from "mock-fs";
 import { Rewriter, rewriteSnippetToSyncVersion } from 'synvert-core';
 import { getFileName } from "./utils";
 
+const rstrip = (str: string) => str.replace(/\s+$/gm, '');
+
 class Verifier {
   constructor(private snippet: string, private language: string, private inputs: string[], private outputs: string[]) { }
 
@@ -30,7 +32,7 @@ class Verifier {
         const expectedOutput = this.outputs[index];
         debug("synvert-api:verifier")(`actualOutput: ${actualOutput}`);
         debug("synvert-api:verifier")(`expectedOutput: ${expectedOutput}`);
-        return actualOutput === expectedOutput;
+        return rstrip(actualOutput) === rstrip(expectedOutput);
       });
     } finally {
       Rewriter.rewriters = {};
