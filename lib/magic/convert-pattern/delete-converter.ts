@@ -20,11 +20,11 @@ class DeleteConverter extends BaseConverter {
       return;
     }
     if (this.deleteResults.length === 1) {
-      const pattern = `deleteNode("${this.deleteResults[0]}");`;
+      const pattern = `delete("${this.deleteResults[0]}");`;
       this.builderNode.addConvertPattern(pattern);
       return;
     }
-    const pattern = `deleteNode(["${this.deleteResults.join('", "')}"]);`;
+    const pattern = `delete(["${this.deleteResults.join('", "')}"]);`;
     this.builderNode.addConvertPattern(pattern);
   }
 
