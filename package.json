@@ -37,7 +37,7 @@
     "sequelize": "^6.25.8",
     "synvert-core": "^2.6.0",
     "typescript": "^4.9.3",
-    "typescript-visitor-keys": "^0.2.25",
+    "typescript-visitor-keys": "^0.2.26",
     "vm2": "^3.9.11"
   }
 }
