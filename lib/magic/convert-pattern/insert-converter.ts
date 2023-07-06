@@ -1,7 +1,9 @@
-import { Node } from "typescript";
+import NodeQuery from "@xinminlabs/node-query";
+import NodeMutation from "@xinminlabs/node-mutation";
 import BaseConverter from "./base-converter";
 import { BuilderNode } from "../builder";
-import { escapeString, getChildKeys, getNodeType, isNode, nodesEqual } from "../utils";
+import { escapeString, getChildKeys, isNode, nodeIsNull, nodesEqual } from "../utils";
+import type { GenericNode } from "../../types";
 
 type InsertResult = {
   to: string,
@@ -12,14 +14,14 @@ type InsertResult = {
 class InsertConverter extends BaseConverter {
   private insertResults: InsertResult[];
 
-  constructor(protected inputNodes: Node[], protected outputNodes: Node[], protected builderNode: BuilderNode) {
+  constructor(protected inputNodes: GenericNode[], protected outputNodes: GenericNode[], protected builderNode: BuilderNode) {
     super(inputNodes, outputNodes, builderNode);
     this.insertResults = [];
   }
 
   call() {
-    if (this.inputNodes.every(node => typeof node === "undefined")) {
-      const outputSource = escapeString(this.outputNodes[0].getFullText());
+    if (this.inputNodes.every(node => nodeIsNull(node))) {
+      const outputSource = escapeString(NodeMutation.getAdapter().getSource(this.outputNodes[0]));
       this.builderNode.addConvertPattern(`insert(${outputSource}, { at: "beginning" });`);
       return;
     }
@@ -35,7 +37,7 @@ class InsertConverter extends BaseConverter {
 
   }
 
-  iterateNodes(outputNode: Node | Node[], inputNode: Node | Node[], key?: string) {
+  iterateNodes(outputNode: GenericNode | GenericNode[], inputNode: GenericNode | GenericNode[], key?: string) {
     if (Array.isArray(outputNode) && Array.isArray(inputNode)) {
       if (inputNode.length >= outputNode.length) {
         return;
@@ -61,14 +63,14 @@ class InsertConverter extends BaseConverter {
           this.insertResults.push({
             to: key ? `${key}.${index}` : index.toString(),
             at: index === -1 ? "end" : "beginning",
-            newCode: outputNode[outputIndex].getFullText(),
+            newCode: NodeMutation.getAdapter().getSource(outputNode[outputIndex]),
           });
         });
       }
     }
 
-    if (isNode(outputNode) && isNode(inputNode) && getNodeType(outputNode) === getNodeType(inputNode)) {
-      getChildKeys(getNodeType(outputNode)).forEach(childKey => {
+    if (isNode(outputNode) && isNode(inputNode) && NodeQuery.getAdapter().getNodeType(outputNode) === NodeQuery.getAdapter().getNodeType(inputNode)) {
+      getChildKeys(outputNode).forEach(childKey => {
         const newKey = key ? `${key}.${childKey}` : childKey;
         if (nodesEqual(outputNode[childKey], inputNode[childKey])) {
           return;
