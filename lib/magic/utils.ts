@@ -1,7 +1,14 @@
-import { KEYS } from "typescript-visitor-keys";
-import { createProgram, createSourceFile, Node, SyntaxKind, ScriptKind, ScriptTarget } from "typescript";
+import path from "path";
+import { KEYS as EspreeKeys } from "eslint-visitor-keys";
+import { KEYS as TypescriptKeys } from "typescript-visitor-keys";
+import NodeMutation from "@xinminlabs/node-mutation";
+import NodeQuery from "@xinminlabs/node-query";
+import { createProgram, createSourceFile, Node as TypescriptNode, ScriptKind, ScriptTarget } from "typescript";
 import { KeyNotFoundError } from "./error";
-import { TypescriptAdapter } from "@xinminlabs/node-mutation"
+import * as espree from "@xinminlabs/espree";
+import gonzales, { Node as GonzalesNode } from "@xinminlabs/gonzales-pe";
+import { Node as EspreeNode } from "acorn";
+import type { GenericNode } from "../types";
 
 export const getFileName = (language: string): string => {
   switch (language) {
@@ -9,26 +16,47 @@ export const getFileName = (language: string): string => {
       return "code.ts";
     case "javascript":
       return "code.js";
+    case "css":
+      return "code.css";
+    case "less":
+      return "code.less";
+    case "sass":
+      return "code.sass";
+    case "scss":
+      return "code.scss";
     default:
       return "code.unknown";
   }
 }
 
-const typescriptAdapter = new TypescriptAdapter();
-
-export const getNodeRange = (node: Node): { start :number, end: number } => {
-  return { start: typescriptAdapter.getStart(node), end: typescriptAdapter.getEnd(node) };
+export const getNodeRange = (node: GenericNode): { start :number, end: number } => {
+  return { start: NodeMutation.getAdapter().getStart(node), end: NodeMutation.getAdapter().getEnd(node) };
 }
 
-export const getSource = (node: Node): string => {
-  return typescriptAdapter.getSource(node);
+export const getSource = (node: GenericNode): string => {
+  return NodeMutation.getAdapter().getSource(node);
 }
 
-export const parseFullCode = (language: string, code: string, parent = true): Node => {
+export const parseFullCode = (language: string, parser: string, code: string, parent = true) => {
   const fileName = getFileName(language);
-  const scriptKind = getScriptKind(language);
-  const node = createSourceFile(fileName, code, ScriptTarget.Latest, parent, scriptKind);
-  const program = createProgram([fileName], {});
+  switch (parser) {
+    case "espree":
+      return parseCodeByEspree(code, fileName);
+    case "typescript":
+      const scriptKind = getScriptKind(language);
+      return parseCodeByTypescript(code, fileName, scriptKind, parent);
+    case "gonzales-pe":
+      return parseCodeByGonzalesPe(code, fileName);
+  }
+}
+
+export const parseCode = (language: string, parser: string, code: string, parent = true) => {
+  return parseFullCode(language, parser, code, parent);
+}
+
+export const parseCodeByTypescript = (code: string, filePath: string, scriptKind: ScriptKind, parent = true): TypescriptNode => {
+  const node = createSourceFile(filePath, code, ScriptTarget.Latest, parent, scriptKind);
+  const program = createProgram([filePath], {});
   const diagnotics = program.getSyntacticDiagnostics(node);
   if (diagnotics.length > 0) {
     throw new SyntaxError(diagnotics[0].messageText.toString());
@@ -36,13 +64,26 @@ export const parseFullCode = (language: string, code: string, parent = true): No
   return node;
 }
 
-export const parseCode = (language: string, code: string, parent = true): Node => {
-  return parseFullCode(language, code, parent)["statements"][0];
+export const parseCodeByEspree = (code: string, filePath: string) : EspreeNode =>  {
+  return espree.parse(code, {
+    ecmaVersion: "latest",
+    loc: true,
+    sourceType: "module",
+    sourceFile: filePath,
+    ecmaFeatures: { jsx: true },
+  });
 }
 
-export const getNodeType = (node: Node) => SyntaxKind[node.kind];
+export const parseCodeByGonzalesPe = (code: string, filePath: string): GonzalesNode => {
+  const syntax = path.extname(filePath).split(".").pop();
+  return gonzales.parse(code, { syntax, sourceFile: filePath });
+}
 
-export const isNode = (value: any): value is Node => value && value instanceof Object && 'kind' in value;
+export const isNode = (value: any): value is GenericNode => isTypescriptNode(value) || isEspreeNode(value) || isGonzalesNode(value);
+
+const isTypescriptNode = (value: any): value is TypescriptNode => value && value instanceof Object && 'kind' in value;
+const isEspreeNode = (value: any): value is EspreeNode => value && value instanceof Object && 'type' in value && 'loc' in value;
+const isGonzalesNode = (value: any): value is GonzalesNode => value && value instanceof Object && 'type' in value && 'syntax' in value;
 
 export const allNodes = (values: any[]): boolean => values.every(value => isNode(value));
 
@@ -52,25 +93,29 @@ export const allEqual = (values: any[]): boolean => values.every(value => value 
 
 export const allUndefined = (values: any[]): boolean => values.every(value => typeof value === "undefined");
 
-export const allNodeTypeEqual = (nodes: Node[]): boolean => nodes.every(node => isNode(node) && node.kind === nodes[0].kind);
+export const allNodeTypeEqual = (nodes: GenericNode[]): boolean => nodes.every(node => isNode(node) && NodeQuery.getAdapter().getNodeType(node) === NodeQuery.getAdapter().getNodeType(nodes[0]));
 
-export const allNodesEqual = (nodes: Node[]): boolean => nodes.every(node => nodesEqual(node, nodes[0]));
+export const allNodesEqual = (nodes: GenericNode[]): boolean => nodes.every(node => nodesEqual(node, nodes[0]));
 
-export const nodesEqual = (node1: Node, node2: Node): boolean => {
+export const nodeIsNull = (node: GenericNode): boolean => {
+  return (typeof node === "undefined") || (Array.isArray(node["body"]) && node["body"].length === 0);
+}
+
+export const nodesEqual = (node1: GenericNode, node2: GenericNode): boolean => {
   if (!isNode(node1)) {
     return false;
   }
   if (!isNode(node2)) {
     return false;
   }
-  if (node1.kind != node2.kind) {
+  if (NodeQuery.getAdapter().getNodeType(node1) != NodeQuery.getAdapter().getNodeType(node2)) {
     return false;
   }
-  const nodeType = getNodeType(node1);
+  const nodeType = NodeQuery.getAdapter().getNodeType(node1);
   if (nodeType === "Identifier") {
     return node1['escapedText'] === node2['escapedText'];
   } else {
-    return getChildKeys(nodeType).every(key => valuesEqual(node1[key], node2[key]));
+    return getChildKeys(node1).every(key => valuesEqual(node1[key], node2[key]));
   }
 }
 
@@ -78,8 +123,18 @@ export const ignoredAttribute = (key: string, value: any): boolean => {
   return ["typeArguments", "exclamationToken"].includes(key) && value === undefined;
 }
 
-export const getChildKeys = (nodeType: string): string[] => {
-  const childKeys = KEYS[nodeType];
+export const getChildKeys = (node: GenericNode): string[] => {
+  const nodeType = NodeQuery.getAdapter().getNodeType(node)
+  let childKeys;
+  if (isTypescriptNode(node)) {
+    childKeys = TypescriptKeys[nodeType];
+  }
+  if (isEspreeNode(node)) {
+    childKeys = EspreeKeys[nodeType];
+  }
+  if (isGonzalesNode(node)) {
+    childKeys = Array.isArray(node.content) ? node.content.map(node => node.type) : [];
+  }
   if (!childKeys) {
     throw new KeyNotFoundError(`no child keys for ${nodeType}`);
   }

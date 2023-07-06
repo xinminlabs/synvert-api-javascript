@@ -1,22 +1,34 @@
 import * as Utils from "../../lib/magic/utils";
-import { parseJS } from "../test-helper";
+import { parseJS, parseCss, parseJsByEspree } from "../test-helper";
+import gonzales from "@xinminlabs/gonzales-pe";
 
 describe("Utils", () => {
-  describe(".getNodeType", () => {
-    it("gets node type text", () => {
-      const node = parseJS("$.isArray(foo)")['expression'];
-      expect(Utils.getNodeType(node)).toEqual("CallExpression");
-    });
-  });
-
   describe("isNode", () => {
-    it("gets true if it is a node", () => {
-      const node = parseJS("$.isArray(foo)")['expression'];
-      expect(Utils.isNode(node)).toBeTruthy();
+    describe("typescript", () => {
+      it("gets true if it is a node", () => {
+        const node = parseJS("$.isArray(foo)")['expression'];
+        expect(Utils.isNode(node)).toBeTruthy();
+      });
+
+      it("gets false if it is a node", () => {
+        expect(Utils.isNode("foobar")).toBeFalsy();
+      });
     });
 
-    it("gets false if it is a node", () => {
-      expect(Utils.isNode("foobar")).toBeFalsy();
+    describe("espree", () => {
+      it("gets true if it is a node", () => {
+        const node = parseJsByEspree("$.isArray(foo)");
+        console.log(node)
+        expect(Utils.isNode(node)).toBeTruthy();
+      });
+    });
+
+    describe("gonzales", () => {
+      it("gets true if it is a node", () => {
+        const node = parseCss("a { color: red; }");
+        console.log(node)
+        expect(Utils.isNode(node)).toBeTruthy();
+      });
     });
   });
 
@@ -77,6 +89,29 @@ describe("Utils", () => {
       const node1 = parseJS("$.isArray(foo)");
       const node2 = parseJS("$.isArray(bar)");
       expect(Utils.nodesEqual(node1, node2)).toBeFalsy();
+    });
+  });
+
+  describe("getChildKeys", () => {
+    describe("typescript", () => {
+      it("gets child keys", () => {
+        const node = parseJS("$.isArray(foo)")["expression"];
+        expect(Utils.getChildKeys(node)).toEqual(["expression", "typeArguments", "arguments"]);
+      });
+    });
+
+    describe("espree", () => {
+      it("gets child keys", () => {
+        const node = parseJsByEspree("$.isArray(foo)")["body"][0]["expression"];
+        expect(Utils.getChildKeys(node)).toEqual(["callee", "arguments"]);
+      });
+    });
+
+    describe("gonzales-pe", () => {
+      it("gets child keys", () => {
+        const node = parseCss("a { color: red }")["content"][0] as gonzales.Node;
+        expect(Utils.getChildKeys(node)).toEqual(["selector", "space", "block"]);
+      });
     });
   });
 });
