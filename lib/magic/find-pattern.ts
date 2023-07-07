@@ -1,12 +1,13 @@
-import { Node, SyntaxKind } from "typescript";
+import NodeQuery from "@xinminlabs/node-query";
 import { ConvertPatternOptions, NqlOrRules } from "./types";
 import Builder, { BuilderNode } from "./builder";
 import { PATTERNS } from "./convert-pattern";
-import { allArrays, allEqual, allNodes, allNodesEqual, allNodeTypeEqual, allUndefined, getChildKeys, getNodeType, getSource, isNode } from "./utils";
+import { allArrays, allEqual, allNodes, allNodesEqual, allNodeTypeEqual, allUndefined, getChildKeys, getSource, isNode } from "./utils";
 import InsertConverter from "./convert-pattern/insert-converter";
+import type { GenericNode } from "../types";
 
 class FindPattern {
-  constructor(private inputNodes: Node[], private outputNodes: Node[], private nqlOrRules: NqlOrRules, private convertFunc: (ConvertPatternOptions) => void) {}
+  constructor(private inputNodes: GenericNode[], private outputNodes: GenericNode[], private nqlOrRules: NqlOrRules, private convertFunc: (ConvertPatternOptions) => void) {}
 
   call(): string[] {
     if (!allUndefined(this.inputNodes) && !allNodeTypeEqual(this.inputNodes)) {
@@ -21,7 +22,7 @@ class FindPattern {
     });
   }
 
-  private nodesPattern(inputNodes: Node[], outputNodes: Node[], builderNode: BuilderNode): void {
+  private nodesPattern(inputNodes: GenericNode[], outputNodes: GenericNode[], builderNode: BuilderNode): void {
     let patterns = this.generatePatterns(inputNodes);
     if (typeof patterns === "string") {
       // if the input node is a simple Identifier
@@ -61,7 +62,7 @@ class FindPattern {
     }
   }
 
-  private generatePatterns(nodes: Node[]): any {
+  private generatePatterns(nodes: GenericNode[]): any {
     if (!allNodeTypeEqual(nodes)) {
       return null;
     }
@@ -69,9 +70,9 @@ class FindPattern {
       return this.valueInPattern(nodes[0]);
     }
 
-    const nodeType = getNodeType(nodes[0]);
+    const nodeType = NodeQuery.getAdapter().getNodeType(nodes[0]);
     const pattern = { nodeType: nodeType };
-    getChildKeys(nodeType).forEach(key => {
+    getChildKeys(nodes[0]).forEach(key => {
       const values = nodes.map(node => node[key]);
       if (allEqual(values)) {
         pattern[key] = this.valueInPattern(values[0]);
@@ -87,17 +88,17 @@ class FindPattern {
     return pattern;
   }
 
-  private valueInPattern(value: Node | Node[]): any {
+  private valueInPattern(value: GenericNode | GenericNode[]): any {
     if (isNode(value)) {
-      switch (value.kind) {
-        case SyntaxKind.Identifier:
+      switch (NodeQuery.getAdapter().getNodeType(value)) {
+        case "Identifier":
           return value["escapedText"];
-        case SyntaxKind.JsxText:
+        case "JsxText":
           return getSource(value);
         default:
-          const inputType = getNodeType(value);
+          const inputType = NodeQuery.getAdapter().getNodeType(value);
           const result = { nodeType: inputType };
-          getChildKeys(inputType).forEach(key => {
+          getChildKeys(value).forEach(key => {
             result[key] = this.valueInPattern(value[key]);
           });
           return result;
