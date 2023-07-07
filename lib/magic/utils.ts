@@ -108,15 +108,10 @@ export const nodesEqual = (node1: GenericNode, node2: GenericNode): boolean => {
   if (!isNode(node2)) {
     return false;
   }
-  if (NodeQuery.getAdapter().getNodeType(node1) != NodeQuery.getAdapter().getNodeType(node2)) {
-    return false;
-  }
-  const nodeType = NodeQuery.getAdapter().getNodeType(node1);
-  if (nodeType === "Identifier") {
-    return node1['escapedText'] === node2['escapedText'];
-  } else {
-    return getChildKeys(node1).every(key => valuesEqual(node1[key], node2[key]));
-  }
+  return (
+    NodeQuery.getAdapter().getNodeType(node1) == NodeQuery.getAdapter().getNodeType(node2) &&
+    NodeQuery.getAdapter().getSource(node1) == NodeQuery.getAdapter().getSource(node2)
+  )
 }
 
 export const ignoredAttribute = (key: string, value: any): boolean => {
