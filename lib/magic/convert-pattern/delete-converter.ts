@@ -1,7 +1,8 @@
+import NodeQuery from "@xinminlabs/node-query";
 import { Node } from "typescript";
 import BaseConverter from "./base-converter";
 import { BuilderNode } from "../builder";
-import { getChildKeys, getNodeType, isNode, nodesEqual } from "../utils";
+import { getChildKeys, isNode, nodesEqual } from "../utils";
 
 class DeleteConverter extends BaseConverter {
   private deleteResults: string[];
@@ -51,8 +52,8 @@ class DeleteConverter extends BaseConverter {
       }
     }
 
-    if (isNode(inputNode) && isNode(outputNode) && getNodeType(inputNode) === getNodeType(outputNode)) {
-      getChildKeys(getNodeType(inputNode)).forEach(childKey => {
+    if (isNode(inputNode) && isNode(outputNode) && NodeQuery.getAdapter().getNodeType(inputNode) === NodeQuery.getAdapter().getNodeType(outputNode)) {
+      getChildKeys(inputNode).forEach(childKey => {
         const newKey = key ? `${key}.${childKey}` : childKey;
         if (nodesEqual(inputNode[childKey], outputNode[childKey])) {
           return;
