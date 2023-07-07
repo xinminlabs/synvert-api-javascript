@@ -1,8 +1,9 @@
-import { Node } from "typescript";
 import clone from "clone";
+import NodeQuery from "@xinminlabs/node-query";
 import BaseConverter from "./base-converter";
 import { BuilderNode } from "../builder";
-import { getNodeType, nodesEqual, isNode, getChildKeys, escapeString, getNodeRange } from "../utils";
+import { nodesEqual, isNode, getChildKeys, escapeString, getNodeRange } from "../utils";
+import type { GenericNode } from "../../types";
 
 type ReplaceResult = {
   key: string
@@ -12,7 +13,7 @@ type ReplaceResult = {
 class FindAndReplaceConverter extends BaseConverter {
   private replaceResults: ReplaceResult[];
 
-  constructor(protected inputNodes: Node[], protected outputNodes: Node[], protected builderNode: BuilderNode) {
+  constructor(protected inputNodes: GenericNode[], protected outputNodes: GenericNode[], protected builderNode: BuilderNode) {
     super(inputNodes, outputNodes, builderNode);
     this.replaceResults = [];
   }
@@ -39,7 +40,7 @@ class FindAndReplaceConverter extends BaseConverter {
    * @param key {string}
    * @returns {boolean} if replace the whole node
    */
-  private replaceChildNode(inputNode: Node | Node[], outputNode: Node | Node[], key?: string): boolean {
+  private replaceChildNode(inputNode: GenericNode | GenericNode[], outputNode: GenericNode | GenericNode[], key?: string): boolean {
     if (Array.isArray(inputNode) && Array.isArray(outputNode)) {
       if (inputNode.length !== outputNode.length) {
         return true;
@@ -64,7 +65,7 @@ class FindAndReplaceConverter extends BaseConverter {
           if (nodesEqual(inputChildNode, outputChildNode)) {
             return false;
           }
-          if (getNodeType(inputChildNode) !== getNodeType(outputChildNode)) {
+          if (NodeQuery.getAdapter().getNodeType(inputChildNode) !== NodeQuery.getAdapter().getNodeType(outputChildNode)) {
             this.addReplaceResult(replaceKey, outputChildNode);
             return true;
           }
@@ -72,8 +73,8 @@ class FindAndReplaceConverter extends BaseConverter {
         return this.replaceChildNode(inputChildNode, outputChildNode, replaceKey);
       });
       return allChildrenReplaced.every(replaced => replaced);
-    } else if (isNode(inputNode) && isNode(outputNode) && inputNode.kind === outputNode.kind) {
-      const allChildrenReplaced = getChildKeys(getNodeType(inputNode)).map(childKey => {
+    } else if (isNode(inputNode) && isNode(outputNode) && NodeQuery.getAdapter().getNodeType(inputNode) === NodeQuery.getAdapter().getNodeType(outputNode)) {
+      const allChildrenReplaced = getChildKeys(inputNode).map(childKey => {
         const inputChildNode = inputNode[childKey];
         const outputChildNode = outputNode[childKey];
         const replaceKey = key ? `${key}.${childKey}` : childKey;
@@ -101,7 +102,7 @@ class FindAndReplaceConverter extends BaseConverter {
           if (nodesEqual(inputChildNode, outputChildNode)) {
             return false;
           }
-          if (getNodeType(inputChildNode) !== getNodeType(outputChildNode)) {
+          if (NodeQuery.getAdapter().getNodeType(inputChildNode) !== NodeQuery.getAdapter().getNodeType(outputChildNode)) {
             this.addReplaceResult(replaceKey, outputChildNode);
             return true;
           }
@@ -147,7 +148,7 @@ class FindAndReplaceConverter extends BaseConverter {
     return patterns;
   }
 
-  private addReplaceResult(key: string, outputChildNode: Node[] | Node | string) {
+  private addReplaceResult(key: string, outputChildNode: GenericNode[] | GenericNode | string) {
     if (Array.isArray(outputChildNode)) {
       const newCode = outputChildNode.map((childNode) => {
         const replacedNode = this.replaceNode(clone(childNode), this.inputNodes[0], getNodeRange(childNode).start);
