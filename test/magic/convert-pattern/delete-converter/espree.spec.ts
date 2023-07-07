@@ -15,8 +15,8 @@ describe("DeleteConverter", () => {
           mock({ [file1]: source1, [file2]: source2 });
           const builderNode = new BuilderNode();
           const converter = new DeleteConverter(
-            [parseJsByEspree(source1, file1)["body"][0]["expression"]],
-            [parseJsByEspree(source2, file2)["body"][0]["expression"]],
+            [parseJsByEspree(source1, file1)["body"][0]["expression"], "code1.jsx"],
+            [parseJsByEspree(source2, file2)["body"][0]["expression"], "code2.jsx"],
             builderNode
           );
           converter.call();
