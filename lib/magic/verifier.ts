@@ -2,12 +2,12 @@ import debug from "debug";
 import fs from "fs";
 import mock from "mock-fs";
 import { Rewriter, rewriteSnippetToSyncVersion } from 'synvert-core';
-import { getFileName } from "./utils";
+import { getFileExtension } from "./utils";
 
 const rstrip = (str: string) => str.replace(/\s+$/gm, '');
 
 class Verifier {
-  constructor(private snippet: string, private language: string, private inputs: string[], private outputs: string[]) { }
+  constructor(private snippet: string, private language: string, private parser: string, private inputs: string[], private outputs: string[]) { }
 
   call(): boolean {
     if (this.outputs.length === 0) {
@@ -16,10 +16,11 @@ class Verifier {
 
     try {
       return this.inputs.every((input, index) => {
-        const fileName = getFileName(this.language);
+        const fileExtesion = getFileExtension(this.language);
+        const fileName = `code.${fileExtesion}`;
         const snippet = `
           new Synvert.Rewriter("group", "name", () => {
-            configure({ parser: Synvert.Parser.TYPESCRIPT });
+            configure({ parser: Synvert.Parser.${this.parser.toUpperCase()} });
             withinFile("${fileName}", () => {
               ${this.snippet}
             });
