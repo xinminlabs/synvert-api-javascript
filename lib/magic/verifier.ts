@@ -30,6 +30,7 @@ class Verifier {
         rewriter.processSync();
         const actualOutput = fs.readFileSync(fileName, "utf-8");
         const expectedOutput = this.outputs[index];
+        debug("synvert-api:verifier")(`snippet: ${snippet}`);
         debug("synvert-api:verifier")(`actualOutput: ${actualOutput}`);
         debug("synvert-api:verifier")(`expectedOutput: ${expectedOutput}`);
         return rstrip(actualOutput) === rstrip(expectedOutput);
