@@ -38,14 +38,14 @@ const validateInputsOutputs = (req: Request, res: Response, next: NextFunction) 
       parseCode(req.body.language, req.body.parser, getFileName(req.body.language), input);
     }
   } catch (e) {
-    return res.status(400).json({ error: e.message });
+    return res.status(400).json({ error: "Inputs are invalid. " + e.message });
   }
   try {
     for (let output of req.body.outputs) {
       parseCode(req.body.language, req.body.parser, getFileName(req.body.language), output);
     }
   } catch (e) {
-    return res.status(400).json({ error: e.message });
+    return res.status(400).json({ error: "Outputs are invalid. " + e.message });
   }
   const [inputs, outputs] = formatInputsOutputs(req)
   if (inputs.length === 0 && outputs.length === 0) {
