@@ -2,7 +2,7 @@ import debug from "debug";
 import fs from "fs";
 import mock from "mock-fs";
 import { Rewriter, rewriteSnippetToSyncVersion } from 'synvert-core';
-import { getFileExtension } from "./utils";
+import { getFileName } from "./utils";
 
 const rstrip = (str: string) => str.replace(/\s+$/gm, '');
 
@@ -16,8 +16,7 @@ class Verifier {
 
     try {
       return this.inputs.every((input, index) => {
-        const fileExtesion = getFileExtension(this.language);
-        const fileName = `code.${fileExtesion}`;
+        const fileName = getFileName(this.language);
         const snippet = `
           new Synvert.Rewriter("group", "name", () => {
             configure({ parser: Synvert.Parser.${this.parser.toUpperCase()} });

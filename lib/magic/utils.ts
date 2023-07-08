@@ -29,6 +29,11 @@ export const getFileExtension = (language: string): string => {
   }
 }
 
+export const getFileName = (language: string): string => {
+  const extension = getFileExtension(language);
+  return `code.${extension}`;
+}
+
 export const getNodeRange = (node: GenericNode): { start :number, end: number } => {
   return { start: NodeMutation.getAdapter().getStart(node), end: NodeMutation.getAdapter().getEnd(node) };
 }

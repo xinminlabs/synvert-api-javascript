@@ -8,7 +8,7 @@ import NodeMutation, { ProcessResult } from "@xinminlabs/node-mutation";
 import { databaseClient, redisClient } from './connection';
 import Magic from "./magic";
 import { NqlOrRules } from './magic/types';
-import { getFileExtension, parseCode, parseFullCode } from "./magic/utils";
+import { getFileName, parseCode, parseFullCode } from "./magic/utils";
 import { Rewriter, rewriteSnippetToSyncVersion } from 'synvert-core';
 import type { Location, Range, GenericNode } from "./types";
 
@@ -21,15 +21,13 @@ export const getAllSyntaxKind = () => {
 }
 
 export const generateAst = (language: string, parser: string, code: string): any => {
-  const fileExtension = getFileExtension(language);
-  const fileName = `code.${fileExtension}`;
+  const fileName = getFileName(language);
   return parseFullCode(language, parser, fileName, code, false);
 }
 
 export const parseSynvertSnippet = (language: string, parser: string, code: string, snippet: string): string => {
   try {
-    const fileExtension = getFileExtension(language);
-    const fileName = `code.${fileExtension}`;
+    const fileName = getFileName(language);
     parseCode(language, parser, fileName, code, false);
     parseCode(language, parser, fileName, snippet, false);
     mock({ [fileName]: code });
@@ -116,8 +114,7 @@ export const parseNql = (
   nql: string,
   source: string
 ): Range[] => {
-  const fileExtension = getFileExtension(language);
-  const fileName = `code.${fileExtension}`;
+  const fileName = getFileName(language);
   const node = parseFullCode(language, parser, fileName, source, true);
   const nodeQuery = new NodeQuery<GenericNode>(nql);
   const matchingNodes = nodeQuery.queryNodes(node);
@@ -136,8 +133,7 @@ export const mutateCode = (
   source: string,
   mutationCode: string
 ): ProcessResult => {
-  const fileExtension = getFileExtension(language);
-  const fileName = `code.${fileExtension}`;
+  const fileName = getFileName(language);
   parseCode(language, parser, fileName, mutationCode, true);
   const node = parseFullCode(language, parser, fileName, source, true);
   const nodeQuery = new NodeQuery<GenericNode>(nql);
