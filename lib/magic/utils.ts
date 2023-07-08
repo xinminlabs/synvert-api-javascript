@@ -10,22 +10,22 @@ import gonzales, { Node as GonzalesNode } from "@xinminlabs/gonzales-pe";
 import { Node as EspreeNode } from "acorn";
 import type { GenericNode } from "../types";
 
-export const getFileName = (language: string): string => {
+export const getFileExtension = (language: string): string => {
   switch (language) {
     case "typescript":
-      return "code.ts";
+      return "ts";
     case "javascript":
-      return "code.js";
+      return "js";
     case "css":
-      return "code.css";
+      return "css";
     case "less":
-      return "code.less";
+      return "less";
     case "sass":
-      return "code.sass";
+      return "sass";
     case "scss":
-      return "code.scss";
+      return "scss";
     default:
-      return "code.unknown";
+      return "unknown";
   }
 }
 
@@ -37,21 +37,20 @@ export const getSource = (node: GenericNode): string => {
   return NodeMutation.getAdapter().getSource(node);
 }
 
-export const parseFullCode = (language: string, parser: string, code: string, parent = true) => {
-  const fileName = getFileName(language);
+export const parseFullCode = (language: string, parser: string, fileName: string, code: string, parent = true) => {
   switch (parser) {
     case "espree":
-      return parseCodeByEspree(code, fileName);
+      return parseCodeByEspree(code, fileName)["body"][0];
     case "typescript":
       const scriptKind = getScriptKind(language);
-      return parseCodeByTypescript(code, fileName, scriptKind, parent);
+      return parseCodeByTypescript(code, fileName, scriptKind, parent)["statements"][0];
     case "gonzales-pe":
       return parseCodeByGonzalesPe(code, fileName);
   }
 }
 
-export const parseCode = (language: string, parser: string, code: string, parent = true) => {
-  return parseFullCode(language, parser, code, parent);
+export const parseCode = (language: string, parser: string, fileName: string, code: string, parent = true) => {
+  return parseFullCode(language, parser, fileName, code, parent);
 }
 
 export const parseCodeByTypescript = (code: string, filePath: string, scriptKind: ScriptKind, parent = true): TypescriptNode => {
