@@ -131,6 +131,8 @@ class FindPatternFindNode extends BuilderNode {
         // skip
       } else if (ignoredAttribute(key, value)) {
         // skip
+      } else if (value === null) {
+        nqlArray.push(`[${key}=null]`);
       } else if (typeof value === "object") {
         if (value["nodeType"]) {
           nqlArray.push(`[${key}=${this.generateAttributesPattern(value)}]`);

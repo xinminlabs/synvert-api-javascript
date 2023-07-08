@@ -130,6 +130,23 @@ describe("Magic", () => {
           });
         `]);
       });
+
+      it('checks null value', () => {
+        const language = "typescript";
+        const inputs = ["class Synvert {}"];
+        const outputs = ["class Foobar {}"];
+        const snippet = Magic.call(language, parser, inputs, outputs, NqlOrRules.nql);
+        expect(snippet).toEqual([dedent`
+          findNode(\`.ClassDeclaration[name=Synvert][typeParameters=undefined][heritageClauses=undefined]\`, () => {
+            replace("members", { with: "" });
+            replace("name", { with: "Foobar" });
+          });
+        `, dedent`
+          findNode(\`.ClassDeclaration[name=Synvert][typeParameters=undefined][heritageClauses=undefined]\`, () => {
+            replaceWith("class Foobar {}");
+          });
+        `]);
+      });
     });
   });
 });

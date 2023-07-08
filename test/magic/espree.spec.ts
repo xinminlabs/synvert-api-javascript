@@ -67,6 +67,21 @@ describe("Magic", () => {
           });
         `]);
       });
+
+      it('checks null value', () => {
+        const inputs = ["class Synvert {}"];
+        const outputs = ["class Foobar {}"];
+        const snippet = Magic.call(language, parser, inputs, outputs, NqlOrRules.nql);
+        expect(snippet).toEqual([dedent`
+          findNode(\`.ClassDeclaration[id=Synvert][superClass=null][body=.ClassBody]\`, () => {
+            replace("id", { with: "Foobar" });
+          });
+        `, dedent`
+          findNode(\`.ClassDeclaration[id=Synvert][superClass=null][body=.ClassBody]\`, () => {
+            replaceWith("class Foobar {{body}}");
+          });
+        `]);
+      });
     });
   });
 });
