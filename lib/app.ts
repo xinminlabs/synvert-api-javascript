@@ -99,7 +99,7 @@ app.post('/generate-ast', jsonParser, (req: Request, res: Response) => {
 });
 
 app.post('/parse-synvert-snippet', jsonParser, (req: Request, res: Response) => {
-  const output = parseSynvertSnippet(req.body.language, req.body.code, getFileName(req.body.language), req.body.snippet);
+  const output = parseSynvertSnippet(req.body.language, req.body.parser, req.body.code, req.body.snippet);
   res.json({ output });
 });
 
