@@ -15,27 +15,45 @@ describe("getAllSyntaxKind", () => {
 });
 
 describe("genereteAst", () => {
-  it("gets node from source code", () => {
-    const code = "class Synvert {}";
-    const node = generateAst("typescript", code)
-    expect(node).not.toBeNull();
-  });
+  describe("typescript", () => {
+    it("gets node from source code", () => {
+      const code = "class Synvert {}";
+      const node = generateAst("typescript", "typescript", code)
+      expect(node).not.toBeNull();
+    });
 
-  it("raises error if source code is invalid", () => {
-    const code = "class Synvert }";
-    expect(() => { generateAst("typescript", code) }).toThrow(new SyntaxError("'{' expected."));
-  });
+    it("raises error if source code is invalid", () => {
+      const code = "class Synvert }";
+      expect(() => { generateAst("typescript", "typescript", code) }).toThrow(new SyntaxError("'{' expected."));
+    });
 
-  it("gets jsx node from source code", () => {
-    const code = `
-      class Test extends Component {
-        render() {
-          return <Button />
+    it("gets jsx node from source code", () => {
+      const code = `
+        class Test extends Component {
+          render() {
+            return <Button />
+          }
         }
-      }
-    `
-    const node = generateAst("typescript", code)
-    expect(node).not.toBeNull();
+      `
+      const node = generateAst("typescript", "typescript", code)
+      expect(node).not.toBeNull();
+    });
+  });
+
+  describe("espree", () => {
+    it("gets node", () => {
+      const code = "class Synvert {}";
+      const node = generateAst("javascript", "espree", code);
+      expect(node).not.toBeNull();
+    });
+  });
+
+  describe("gonzales-pe", () => {
+    it("gets node", () => {
+      const code = "a { color: read }";
+      const node = generateAst("css", "gonzales-pe", code);
+      expect(node).not.toBeNull();
+    });
   });
 });
 
@@ -53,7 +71,7 @@ describe("parseSynvertSnippet", () => {
         });
       });
     `;
-    const output = parseSynvertSnippet("javascript", code, snippet);
+    const output = parseSynvertSnippet("javascript", "typescript", code, snippet);
     expect(output).toEqual("'use strict'\nclass Synvert {}");
   });
 
@@ -69,7 +87,7 @@ describe("parseSynvertSnippet", () => {
         });
       });
     `;
-    const output = parseSynvertSnippet("javascript", code, snippet);
+    const output = parseSynvertSnippet("javascript", "typescript", code, snippet);
     expect(output).toEqual("'use strict'\nclass Synvert {}");
   });
 
@@ -82,7 +100,7 @@ describe("parseSynvertSnippet", () => {
         });
       });
     `;
-    const output = parseSynvertSnippet("javascript", code, snippet);
+    const output = parseSynvertSnippet("javascript", "typescript", code, snippet);
     expect(output).toEqual("'use strict'\nclass Synvert {}");
   });
 
@@ -93,7 +111,7 @@ describe("parseSynvertSnippet", () => {
         insert("'use strict'\\n", { at: "beginning" });
       });
     `;
-    const output = parseSynvertSnippet("javascript", code, snippet);
+    const output = parseSynvertSnippet("javascript", "espree", code, snippet);
     expect(output).toEqual("'use strict'\nclass Synvert {}");
   });
 
@@ -104,7 +122,7 @@ describe("parseSynvertSnippet", () => {
         insert("'use strict'\\n", { at: "beginning" });
       });
     `;
-    expect(() => { parseSynvertSnippet("javascript", code, snippet) }).toThrow(new SyntaxError("'{' expected."));
+    expect(() => { parseSynvertSnippet("javascript", "typescript", code, snippet) }).toThrow(new SyntaxError("'{' expected."));
   });
 
   it("raises error if snippet is invalid", () => {
@@ -114,16 +132,17 @@ describe("parseSynvertSnippet", () => {
         insert("'use strict'\\n", { at: "beginning" });
       });
     `;
-    expect(() => { parseSynvertSnippet("javascript", code, snippet) }).toThrow(new SyntaxError("')' expected."));
+    expect(() => { parseSynvertSnippet("javascript", "typescript", code, snippet) }).toThrow(new SyntaxError("')' expected."));
   });
 });
 
 describe("genereteSnippets", () => {
   it("gets snippet with rules", () => {
     const language = "typescript";
+    const parser = "typescript";
     const inputs = ["$.isArray(foo)", "$.isArray(bar)"];
     const outputs = ["Array.isArray(foo)", "Array.isArray(bar)"];
-    expect(generateSnippets(language, inputs, outputs, NqlOrRules.rules)).toEqual([dedent`
+    expect(generateSnippets(language, parser, inputs, outputs, NqlOrRules.rules)).toEqual([dedent`
       withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { 0: { nodeType: "Identifier" }, length: 1 } }, () => {
         replace("expression.expression", { with: "Array" });
       });
@@ -135,26 +154,36 @@ describe("genereteSnippets", () => {
   });
 
   it("gets snippet with nql", () => {
-    const language = "typescript";
+    const language = "javascript";
+    const parser = "espree";
     const inputs = ["$.isArray(foo)", "$.isArray(bar)"];
     const outputs = ["Array.isArray(foo)", "Array.isArray(bar)"];
-    expect(generateSnippets(language, inputs, outputs, NqlOrRules.nql)).toEqual([dedent`
-      findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.length=1][arguments.0=.Identifier]\`, () => {
-        replace("expression.expression", { with: "Array" });
+    expect(generateSnippets(language, parser, inputs, outputs, NqlOrRules.nql)).toEqual([dedent`
+      findNode(\`.CallExpression[callee=.MemberExpression[object=$][property=isArray]][arguments.length=1][arguments.0=.Identifier]\`, () => {
+        replace("callee.object", { with: "Array" });
       });
     `, dedent`
-      findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.length=1][arguments.0=.Identifier]\`, () => {
-        replaceWith("Array.{{expression.name}}({{arguments.0}})");
+      findNode(\`.CallExpression[callee=.MemberExpression[object=$][property=isArray]][arguments.length=1][arguments.0=.Identifier]\`, () => {
+        replaceWith("Array.{{callee.property}}({{arguments.0}})");
       });
     `]);
   });
 });
 
 describe("parseNql", () => {
-  it("gets node from nql", () => {
+  it("gets typescript node from nql", () => {
     const nql = ".ClassDeclaration";
     const code = "class Synvert {}";
-    const ranges = parseNql("ts", nql, code);
+    const ranges = parseNql("typescript", "typescript", nql, code);
+    expect(ranges).toEqual([
+      { start: { line: 1, column: 1 }, end: { line: 1, column: 17 } },
+    ]);
+  });
+
+  it("gets espree node from nql", () => {
+    const nql = ".ClassDeclaration";
+    const code = "class Synvert {}";
+    const ranges = parseNql("javascript", "espree", nql, code);
     expect(ranges).toEqual([
       { start: { line: 1, column: 1 }, end: { line: 1, column: 17 } },
     ]);
@@ -162,11 +191,19 @@ describe("parseNql", () => {
 });
 
 describe("mutateCode", () => {
-  it("gets new source code", () => {
+  it("gets typescript new source code", () => {
     const nql = ".ClassDeclaration";
     const code = "class Synvert {}";
     const mutationCode = 'replace(node, "name", { with: "Foobar" })';
-    const result = mutateCode("ts", nql, code, mutationCode);
+    const result = mutateCode("typescript", "typescript", nql, code, mutationCode);
+    expect(result.newSource).toEqual("class Foobar {}");
+  });
+
+  it("gets espree new source code", () => {
+    const nql = ".ClassDeclaration";
+    const code = "class Synvert {}";
+    const mutationCode = 'replace(node, "id", { with: "Foobar" })';
+    const result = mutateCode("javascript", "espree", nql, code, mutationCode);
     expect(result.newSource).toEqual("class Foobar {}");
   });
 });
