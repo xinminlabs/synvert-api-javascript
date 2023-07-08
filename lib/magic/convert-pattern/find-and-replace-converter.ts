@@ -154,6 +154,9 @@ class FindAndReplaceConverter extends BaseConverter {
         const replacedNode = this.replaceNode(clone(childNode), this.inputNodes[0], getNodeRange(childNode).start);
         return this.generateSourceCode(replacedNode);
       }).join(", ")
+      if (key === "members" && newCode === "") {
+        return;
+      }
       this.replaceResults.push({ key, newCode });
     } else if (isNode(outputChildNode)) {
       const replacedNode = this.replaceNode(clone(outputChildNode), this.inputNodes[0], getNodeRange(outputChildNode).start);
