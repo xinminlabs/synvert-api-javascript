@@ -19,7 +19,7 @@ class Verifier {
         const fileName = getFileName(this.language);
         const snippet = `
           new Synvert.Rewriter("group", "name", () => {
-            configure({ parser: Synvert.Parser.${this.parser.toUpperCase()} });
+            configure({ parser: Synvert.Parser.${this.parser.toUpperCase().replace("-", "_")} });
             withinFile("${fileName}", () => {
               ${this.snippet}
             });
