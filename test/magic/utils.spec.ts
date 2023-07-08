@@ -18,7 +18,6 @@ describe("Utils", () => {
     describe("espree", () => {
       it("gets true if it is a node", () => {
         const node = parseJsByEspree("$.isArray(foo)");
-        console.log(node)
         expect(Utils.isNode(node)).toBeTruthy();
       });
     });
@@ -26,7 +25,6 @@ describe("Utils", () => {
     describe("gonzales", () => {
       it("gets true if it is a node", () => {
         const node = parseCss("a { color: red; }");
-        console.log(node)
         expect(Utils.isNode(node)).toBeTruthy();
       });
     });
