@@ -1,8 +1,8 @@
 import path from "path";
 import { KEYS as EspreeKeys } from "eslint-visitor-keys";
 import { KEYS as TypescriptKeys } from "typescript-visitor-keys";
-import NodeMutation from "@xinminlabs/node-mutation";
-import NodeQuery from "@xinminlabs/node-query";
+import NodeQuery, { EspreeAdapter as QueryEspreeAdapter, TypescriptAdapter as QueryTypescriptAdapter, GonzalesPeAdapter as QueryGonzalesPeAdapter } from "@xinminlabs/node-query";
+import NodeMutation, { EspreeAdapter as MutationEspreeAdapter, TypescriptAdapter as MutationTypescriptAdapter, GonzalesPeAdapter as MutationGonzalesPeAdapter } from "@xinminlabs/node-mutation";
 import { createProgram, createSourceFile, Node as TypescriptNode, ScriptKind, ScriptTarget } from "typescript";
 import { KeyNotFoundError } from "./error";
 import * as espree from "@xinminlabs/espree";
@@ -40,11 +40,17 @@ export const getSource = (node: GenericNode): string => {
 export const parseFullCode = (language: string, parser: string, fileName: string, code: string, parent = true) => {
   switch (parser) {
     case "espree":
+      NodeQuery.configure({ adapter: new QueryEspreeAdapter() });
+      NodeMutation.configure({ adapter: new MutationEspreeAdapter() });
       return parseCodeByEspree(code, fileName)["body"][0];
     case "typescript":
+      NodeQuery.configure({ adapter: new QueryTypescriptAdapter() });
+      NodeMutation.configure({ adapter: new MutationTypescriptAdapter() });
       const scriptKind = getScriptKind(language);
       return parseCodeByTypescript(code, fileName, scriptKind, parent)["statements"][0];
     case "gonzales-pe":
+      NodeQuery.configure({ adapter: new QueryGonzalesPeAdapter() });
+      NodeMutation.configure({ adapter: new MutationGonzalesPeAdapter() });
       return parseCodeByGonzalesPe(code, fileName);
   }
 }
