@@ -92,7 +92,6 @@ class FindPattern {
     if (isNode(value)) {
       switch (NodeQuery.getAdapter().getNodeType(value)) {
         case "Identifier":
-          return value["escapedText"];
         case "JsxText":
           return getSource(value);
         default:

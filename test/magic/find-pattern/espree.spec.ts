@@ -28,7 +28,7 @@ describe("FindPattern", () => {
           ];
           const findPattern = new FindPattern(inputNodes, outputNodes, NqlOrRules.rules, () => {});
           const expected = dedent`
-            withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$", name: "isArray" }, arguments: { 0: { nodeType: "Identifier" }, length: 1 } }, () => {
+            withNode({ nodeType: "CallExpression", callee: { nodeType: "MemberExpression", object: "$", property: "isArray" }, arguments: { 0: { nodeType: "Identifier" }, length: 1 } }, () => {
             });
           `;
           expect(findPattern.call()).toEqual([expected]);
@@ -58,7 +58,7 @@ describe("FindPattern", () => {
           ];
           const findPattern = new FindPattern(inputNodes, outputNodes, NqlOrRules.nql, () => {});
           const expected = dedent`
-            findNode(\`.CallExpression[expression=.PropertyAccessExpression[expression=$][name=isArray]][arguments.length=1][arguments.0=.Identifier]\`, () => {
+            findNode(\`.CallExpression[callee=.MemberExpression[object=$][property=isArray]][arguments.length=1][arguments.0=.Identifier]\`, () => {
             });
           `;
           expect(findPattern.call()).toEqual([expected]);
