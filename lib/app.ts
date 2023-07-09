@@ -35,14 +35,14 @@ const validateInputsOutputs = (req: Request, res: Response, next: NextFunction) 
   }
   try {
     for (let input of req.body.inputs) {
-      parseCode(req.body.language, req.body.parser, getFileName(req.body.language), input);
+      parseCode(req.body.language, getParser(req.body.parser), getFileName(req.body.language), input);
     }
   } catch (e) {
     return res.status(400).json({ error: "Inputs are invalid. " + e.message });
   }
   try {
     for (let output of req.body.outputs) {
-      parseCode(req.body.language, req.body.parser, getFileName(req.body.language), output);
+      parseCode(req.body.language, getParser(req.body.parser), getFileName(req.body.language), output);
     }
   } catch (e) {
     return res.status(400).json({ error: "Outputs are invalid. " + e.message });
@@ -76,6 +76,10 @@ const timeoutAfter = (seconds: number) => {
   });
 }
 
+const getParser = (parser: string | null) => {
+  return parser || "typescript";
+}
+
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to Synvert!');
 });
@@ -94,12 +98,12 @@ app.get('/syntax-kinds', (req: Request, res: Response) => {
 });
 
 app.post('/generate-ast', jsonParser, (req: Request, res: Response) => {
-  const node = generateAst(req.body.language, req.body.parser, req.body.code);
+  const node = generateAst(req.body.language, getParser(req.body.parser), req.body.code);
   res.json({ node });
 });
 
 app.post('/parse-synvert-snippet', jsonParser, (req: Request, res: Response) => {
-  const output = parseSynvertSnippet(req.body.language, req.body.parser, req.body.code, req.body.snippet);
+  const output = parseSynvertSnippet(req.body.language, getParser(req.body.parser), req.body.code, req.body.snippet);
   res.json({ output });
 });
 
@@ -107,7 +111,7 @@ app.post('/generate-snippet', jsonParser, validateInputsOutputs, async (req: Req
   try {
     const [inputs, outputs] = formatInputsOutputs(req);
     const snippets = await Promise.race<string[] | Promise<any>>([
-      generateSnippets(req.body.language, req.body.parser, inputs, outputs, req.body.nql_or_rules),
+      generateSnippets(req.body.language, getParser(req.body.parser), inputs, outputs, req.body.nql_or_rules),
       timeoutAfter(10)
     ]);
     if (snippets.length > 0) {
@@ -174,14 +178,14 @@ app.post('/npmjs-webhook', async (req: Request, res: Response) => {
  *******************/
 
 app.post("/parse-nql", jsonParser, (req: Request, res: Response) => {
-  const ranges = parseNql(req.body.language, req.body.parser, req.body.nql, req.body.code);
+  const ranges = parseNql(req.body.language, getParser(req.body.parser), req.body.nql, req.body.code);
   res.json({ ranges });
 });
 
 app.post("/mutate-code", jsonParser, (req: Request, res: Response) => {
   const result = mutateCode(
     req.body.language,
-    req.body.parser,
+    getParser(req.body.parser),
     req.body.nql,
     req.body.source_code,
     req.body.mutation_code
