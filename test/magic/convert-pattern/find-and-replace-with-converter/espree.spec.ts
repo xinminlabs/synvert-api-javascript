@@ -1,7 +1,7 @@
 import mock from "mock-fs";
 import { BuilderNode } from "../../../../lib/magic/builder";
 import FindAndReplaceWithConverter from "../../../../lib/magic/convert-pattern/find-and-replace-with-converter";
-import { parseJS, parseJsByEspree } from "../../../test-helper";
+import { parseJsByEspree } from "../../../test-helper";
 
 describe("FindAndReplaceWithConverter", () => {
   describe("#call", () => {
