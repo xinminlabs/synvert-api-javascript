@@ -3,7 +3,7 @@ import Rollbar from 'rollbar';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import morgan from 'morgan';
-import { redisClient } from './connection';
+import { redisClient, databaseClient } from './connection';
 import { generateAst, generateSnippets, parseSynvertSnippet, parseNql, mutateCode, getAllJavascriptSnippetsJson, getAllTypescriptSnippetsJson, getAllSyntaxKind, getTypescriptVersion } from './api';
 import { getFileName, parseCode } from "./magic/utils";
 
@@ -206,6 +206,12 @@ app.use(rollbar.errorHandler());
 
 (async() => {
   await redisClient().connect();
+  try {
+    await databaseClient().authenticate();
+    console.log('Connection has been established successfully.');
+  } catch (error) {
+    console.error('Unable to connect to the database:', error);
+  }
   app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
   });
