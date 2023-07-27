@@ -127,7 +127,10 @@ app.post('/generate-snippet', jsonParser, validateInputsOutputs, async (req: Req
 app.get('/snippets', async (req: Request, res: Response) => {
   const language = req.query.language;
   const clientEtag = req.get('If-None-Match');
-  const serverEtag = await redisClient().get(language === "typescript" ? SYNVERT_TYPESCRIPT_SNIPPETS_ETAG : SYNVERT_JAVASCRIPT_SNIPPETS_ETAG);
+  const client = redisClient();
+  await client.connect();
+  const serverEtag = await client.get(language === "typescript" ? SYNVERT_TYPESCRIPT_SNIPPETS_ETAG : SYNVERT_JAVASCRIPT_SNIPPETS_ETAG);
+  client.disconnect();
   if (clientEtag === serverEtag) {
     res.status(304).end();
     return
@@ -149,7 +152,9 @@ const ONE_DAY = 60 * 60 * 24;
 const JAVASCRIPT_VERSIONS = 'javascript_versions';
 
 app.get('/check-versions', async (req: Request, res: Response) => {
-  const versions = await redisClient().hGetAll(JAVASCRIPT_VERSIONS);
+  const client = redisClient();
+  await client.connect();
+  const versions = await client.hGetAll(JAVASCRIPT_VERSIONS);
   let synvertVersion = versions['synvert_version'];
   let synvertCoreVersion = versions['synvert_core_version'];
   if (!synvertVersion || !synvertCoreVersion) {
@@ -159,16 +164,20 @@ app.get('/check-versions', async (req: Request, res: Response) => {
     const synvertCoreResponse = await fetch('https://registry.npmjs.org/synvert-core/latest');
     const synvertCoreJSON = await synvertCoreResponse.json();
     synvertCoreVersion = synvertCoreJSON['version'];
-    await redisClient().hSet(JAVASCRIPT_VERSIONS, { synvert_version: synvertVersion, synvert_core_version: synvertCoreVersion });
-    await redisClient().expire(JAVASCRIPT_VERSIONS, ONE_DAY);
+    await client.hSet(JAVASCRIPT_VERSIONS, { synvert_version: synvertVersion, synvert_core_version: synvertCoreVersion });
+    await client.expire(JAVASCRIPT_VERSIONS, ONE_DAY);
   }
+  await client.disconnect();
   res.json({ synvert_version: synvertVersion, synvert_core_version: synvertCoreVersion });
 });
 
 app.post('/npmjs-webhook', async (req: Request, res: Response) => {
   console.log(req.params.event, req.params.name, req.params.version)
   if (req.params.event === "package:publish") {
-    await redisClient().hSet(JAVASCRIPT_VERSIONS, `${req.param.name.replace('-', '_')}_version`, req.params.version);
+    const client = redisClient();
+    await client.connect();
+    await client.hSet(JAVASCRIPT_VERSIONS, `${req.param.name.replace('-', '_')}_version`, req.params.version);
+    await client.disconnect();
   }
   res.json({});
 });
@@ -205,13 +214,6 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 app.use(rollbar.errorHandler());
 
 (async() => {
-  await redisClient().connect();
-  try {
-    await databaseClient().authenticate();
-    console.log('Connection has been established successfully.');
-  } catch (error) {
-    console.error('Unable to connect to the database:', error);
-  }
   app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
   });
