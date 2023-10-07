@@ -2,7 +2,7 @@ import NodeQuery from "@xinminlabs/node-query";
 import NodeMutation from "@xinminlabs/node-mutation";
 import BaseConverter from "./base-converter";
 import { BuilderNode } from "../builder";
-import { escapeString, getChildKeys, isNode, nodeIsNull, nodesEqual } from "../utils";
+import { escapeString, getChildKeys, isNode, nodeIsNull, nodesEqual, getSource } from "../utils";
 import type { GenericNode } from "../../types";
 
 type InsertResult = {
@@ -21,7 +21,7 @@ class InsertConverter extends BaseConverter {
 
   call() {
     if (this.inputNodes.every(node => nodeIsNull(node))) {
-      const outputSource = escapeString(NodeMutation.getAdapter().getSource(this.outputNodes[0]));
+      const outputSource = escapeString(getSource(this.outputNodes[0]));
       this.builderNode.addConvertPattern(`insert(${outputSource}, { at: "beginning" });`);
       return;
     }
@@ -60,10 +60,13 @@ class InsertConverter extends BaseConverter {
       if (insertIndices.length === outputNode.length - inputNode.length) {
         insertIndices.forEach(({ outputIndex, inputIndex }) => {
           const index = inputIndex === inputNode.length? -1 : inputIndex;
+          // FIXME: I want to insert ' autoComplete="email"' but it inserts 'autoComplete="email"',
+          // I should find a better way to insert the whitespace.
+          const source = 'getFullText' in outputNode[outputIndex] ? outputNode[outputIndex]['getFullText']() : getSource(outputNode[outputIndex]);
           this.insertResults.push({
             to: key ? `${key}.${index}` : index.toString(),
             at: index === -1 ? "end" : "beginning",
-            newCode: NodeMutation.getAdapter().getSource(outputNode[outputIndex]),
+            newCode: source,
           });
         });
       }
@@ -79,7 +82,7 @@ class InsertConverter extends BaseConverter {
           this.insertResults.push({
             to: newKey,
             at: 'beginning',
-            newCode: outputNode[childKey].getFullText(),
+            newCode: getSource(outputNode[childKey]),
           });
           return;
         }

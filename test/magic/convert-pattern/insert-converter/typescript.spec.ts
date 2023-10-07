@@ -22,7 +22,7 @@ describe("InsertConverter", () => {
         );
         converter.call();
         expect(builderNode["children"].length).toEqual(1);
-        expect(builderNode["children"][0].generateSnippet()).toEqual(`insert('autoComplete="email"', { to: "attributes.properties.-1", at: \"end\" });`);
+        expect(builderNode["children"][0].generateSnippet()).toEqual(`insert(' autoComplete="email"', { to: "attributes.properties.-1", at: \"end\" });`);
       });
     });
   });
