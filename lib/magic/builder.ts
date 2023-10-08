@@ -148,7 +148,11 @@ class FindPatternFindNode extends BuilderNode {
             } else if (value[nestedKey]["nodeType"]) {
               nqlArray.push(`[${key}.${nestedKey}=${this.generateAttributesPattern(value[nestedKey])}]`);
             } else {
-              nqlArray.push(`[${key}.${nestedKey}=${value[nestedKey]}]`);
+              if (value[nestedKey] === "") {
+                nqlArray.push(`[${key}.${nestedKey}=""]`);
+              } else {
+                nqlArray.push(`[${key}.${nestedKey}=${value[nestedKey]}]`);
+              }
             }
           });
         }
