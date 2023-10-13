@@ -1,4 +1,4 @@
-FROM node:18.17.1-alpine as builder
+FROM node:18.18.1-alpine as builder
 RUN mkdir /app
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -6,7 +6,7 @@ RUN npm install
 COPY . ./
 RUN npm run build
 
-FROM node:18.17.1-alpine
+FROM node:18.18.1-alpine
 ENV NODE_ENV production
 WORKDIR /app
 COPY --from=builder /app/package*.json ./
