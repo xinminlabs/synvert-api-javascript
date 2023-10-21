@@ -192,6 +192,8 @@ class FindPatternWithNode extends BuilderNode {
       const value = attributes[key];
       if (ignoredAttribute(key, value)) {
         return;
+      } else if (value === null) {
+        return `${key}: null`;
       } else if (typeof value === "object") {
         return `${key}: { ${this.generateAttributesPattern(value)} }`;
       } else if (typeof value === "string") {
