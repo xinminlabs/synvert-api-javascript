@@ -3,7 +3,7 @@ import Rollbar from 'rollbar';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import morgan from 'morgan';
-import { redisClient, databaseClient } from './connection';
+import { redisClient } from './connection';
 import { generateAst, generateSnippets, parseSynvertSnippet, parseNql, mutateCode, getAllJavascriptSnippetsJson, getAllTypescriptSnippetsJson, getAllSyntaxKind, getTypescriptVersion } from './api';
 import { getFileName, parseCode } from "./magic/utils";
 
