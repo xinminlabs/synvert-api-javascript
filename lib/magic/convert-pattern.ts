@@ -1,4 +1,6 @@
 import { ConvertPatternOptions } from "./types";
+import FindAndDeleteConverter from "./convert-pattern/find-and-delete-converter";
+import FindAndInsertConverter from "./convert-pattern/find-and-insert-converter";
 import FindAndReplaceConverter from "./convert-pattern/find-and-replace-converter"
 import FindAndReplaceWithConverter from "./convert-pattern/find-and-replace-with-converter"
 import NoopConverter from "./convert-pattern/noop-converter";
@@ -10,7 +12,9 @@ export const PATTERNS = {
   noop: NoopConverter,
   remove: RemoveConverter,
   insert: InsertConverter,
-  delete: DeleteConverter,
+  // delete: DeleteConverter,
+  findAndDelete: FindAndDeleteConverter,
+  findAndInsert: FindAndInsertConverter,
   findAndReplace: FindAndReplaceConverter,
   findAndReplaceWith: FindAndReplaceWithConverter,
 }

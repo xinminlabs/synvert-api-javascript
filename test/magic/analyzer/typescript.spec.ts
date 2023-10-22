@@ -49,6 +49,11 @@ describe("Analyzer", () => {
           const expected = [
             dedent`
               withNode({ nodeType: "JsxElement", openingElement: { nodeType: "JsxOpeningElement", tagName: "div", attributes: { nodeType: "JsxAttributes", properties: { 0: { nodeType: "JsxAttribute", name: "className", initializer: { nodeType: "StringLiteral", text: "container-fluid" } }, length: 1 } } }, children: { 0: "foobar", length: 1 }, closingElement: { nodeType: "JsxClosingElement", tagName: "div" } }, () => {
+                delete("openingElement.attributes.properties.0.initializer");
+              });
+            `,
+            dedent`
+              withNode({ nodeType: "JsxElement", openingElement: { nodeType: "JsxOpeningElement", tagName: "div", attributes: { nodeType: "JsxAttributes", properties: { 0: { nodeType: "JsxAttribute", name: "className", initializer: { nodeType: "StringLiteral", text: "container-fluid" } }, length: 1 } } }, children: { 0: "foobar", length: 1 }, closingElement: { nodeType: "JsxClosingElement", tagName: "div" } }, () => {
                 replace("closingElement", { with: "</Container>" });
                 replace("openingElement", { with: "<Container fluid>" });
               });

@@ -2,7 +2,7 @@ import NodeQuery from "@xinminlabs/node-query";
 import { ConvertPatternOptions, NqlOrRules } from "./types";
 import Builder, { BuilderNode } from "./builder";
 import { PATTERNS } from "./convert-pattern";
-import { allArrays, allEqual, allNodes, allNodesEqual, allNodeTypeEqual, allUndefined, getChildKeys, getSource, isNode } from "./utils";
+import { allArrays, allEqual, allNodes, allNodesEqual, allNodeTypeEqual, allUndefined, getChildKeys, getNodeSource, isNode } from "./utils";
 import InsertConverter from "./convert-pattern/insert-converter";
 import type { GenericNode } from "../types";
 
@@ -93,7 +93,7 @@ class FindPattern {
       switch (NodeQuery.getAdapter().getNodeType(value)) {
         case "Identifier":
         case "JsxText":
-          return getSource(value);
+          return getNodeSource(value);
         default:
           const inputType = NodeQuery.getAdapter().getNodeType(value);
           const result = { nodeType: inputType };

@@ -119,6 +119,121 @@ describe("Magic", () => {
         expect(snippet).toEqual([`insert("console.log('hello world')", { at: "beginning" });`]);
       });
 
+      it("gets an insert object property", () => {
+        const language = "javascript";
+        const inputs = [dedent`
+          assertConvert({
+            input,
+            output,
+            snippet,
+          });
+        `];
+        const outputs = [dedent`
+          assertConvert({
+            input,
+            output,
+            snippet,
+            helpers: ["helpers/remove-imports"],
+          });
+        `];
+        const snippet = Magic.call(language, parser, inputs, outputs, NqlOrRules.rules);
+        expect(snippet).toEqual([dedent`
+          withNode({ nodeType: "CallExpression", expression: "assertConvert", arguments: { 0: { nodeType: "ObjectLiteralExpression", properties: { 0: { nodeType: "ShorthandPropertyAssignment", name: "input" }, 1: { nodeType: "ShorthandPropertyAssignment", name: "output" }, 2: { nodeType: "ShorthandPropertyAssignment", name: "snippet" }, length: 3 } }, length: 1 } }, () => {
+            insertAfter('helpers: ["helpers/remove-imports"]', { to: "arguments.0.properties.-1", at: "end", andComma: true });
+          });
+        `, dedent`
+          withNode({ nodeType: "CallExpression", expression: "assertConvert", arguments: { 0: { nodeType: "ObjectLiteralExpression", properties: { 0: { nodeType: "ShorthandPropertyAssignment", name: "input" }, 1: { nodeType: "ShorthandPropertyAssignment", name: "output" }, 2: { nodeType: "ShorthandPropertyAssignment", name: "snippet" }, length: 3 } }, length: 1 } }, () => {
+            replaceWith(\`{{expression}}({
+            {{arguments.0.properties.0}},
+            {{arguments.0.properties.1}},
+            {{arguments.0.properties.2}},
+            helpers: ["helpers/remove-imports"],
+          })\`);
+          });
+        `]);
+      });
+
+      it("gets an insert jsx property", () => {
+        const language = "typescript";
+        const inputs = [`<Field name="email" />`];
+        const outputs = [`<Field name="email" autoComplete="email" />`];
+        const snippet = Magic.call(language, parser, inputs, outputs, NqlOrRules.rules);
+        expect(snippet).toEqual([dedent`
+          withNode({ nodeType: "JsxSelfClosingElement", tagName: "Field", attributes: { nodeType: "JsxAttributes", properties: { 0: { nodeType: "JsxAttribute", name: "name", initializer: { nodeType: "StringLiteral", text: "email" } }, length: 1 } } }, () => {
+            insert('autoComplete="email"', { to: "attributes.properties.-1", at: "end", andSpace: true });
+          });
+        `, dedent`
+          withNode({ nodeType: "JsxSelfClosingElement", tagName: "Field", attributes: { nodeType: "JsxAttributes", properties: { 0: { nodeType: "JsxAttribute", name: "name", initializer: { nodeType: "StringLiteral", text: "email" } }, length: 1 } } }, () => {
+            replace("attributes", { with: '{{attributes.properties.0}} autoComplete="email"' });
+          });
+        `, dedent`
+          withNode({ nodeType: "JsxSelfClosingElement", tagName: "Field", attributes: { nodeType: "JsxAttributes", properties: { 0: { nodeType: "JsxAttribute", name: "name", initializer: { nodeType: "StringLiteral", text: "email" } }, length: 1 } } }, () => {
+            replaceWith('<{{tagName}} {{attributes.properties.0}} autoComplete="email" />');
+          });`,
+        ]);
+      });
+
+      it("gets a delete object property", () => {
+        const language = "javascript";
+        const inputs = [dedent`
+          assertConvert({
+            input,
+            output,
+            snippet,
+            helpers: ["helpers/remove-imports"],
+          });
+        `];
+        const outputs = [dedent`
+          assertConvert({
+            input,
+            output,
+            snippet,
+          });
+        `];
+        const snippet = Magic.call(language, parser, inputs, outputs, NqlOrRules.rules);
+        expect(snippet).toEqual([dedent`
+          withNode({ nodeType: "CallExpression", expression: "assertConvert", arguments: { 0: { nodeType: "ObjectLiteralExpression", properties: { 0: { nodeType: "ShorthandPropertyAssignment", name: "input" }, 1: { nodeType: "ShorthandPropertyAssignment", name: "output" }, 2: { nodeType: "ShorthandPropertyAssignment", name: "snippet" }, 3: { nodeType: "PropertyAssignment", name: "helpers", initializer: { nodeType: "ArrayLiteralExpression", elements: { 0: { nodeType: "StringLiteral", text: "helpers/remove-imports" }, length: 1 } }, questionToken: undefined }, length: 4 } }, length: 1 } }, () => {
+            delete("arguments.0.helpersProperty", { andComma: true });
+          });
+        `, dedent`
+          withNode({ nodeType: "CallExpression", expression: "assertConvert", arguments: { 0: { nodeType: "ObjectLiteralExpression", properties: { 0: { nodeType: "ShorthandPropertyAssignment", name: "input" }, 1: { nodeType: "ShorthandPropertyAssignment", name: "output" }, 2: { nodeType: "ShorthandPropertyAssignment", name: "snippet" }, 3: { nodeType: "PropertyAssignment", name: "helpers", initializer: { nodeType: "ArrayLiteralExpression", elements: { 0: { nodeType: "StringLiteral", text: "helpers/remove-imports" }, length: 1 } }, questionToken: undefined }, length: 4 } }, length: 1 } }, () => {
+            delete("arguments.0.properties.-1", { andComma: true });
+          });
+        `, dedent`
+          withNode({ nodeType: "CallExpression", expression: "assertConvert", arguments: { 0: { nodeType: "ObjectLiteralExpression", properties: { 0: { nodeType: "ShorthandPropertyAssignment", name: "input" }, 1: { nodeType: "ShorthandPropertyAssignment", name: "output" }, 2: { nodeType: "ShorthandPropertyAssignment", name: "snippet" }, 3: { nodeType: "PropertyAssignment", name: "helpers", initializer: { nodeType: "ArrayLiteralExpression", elements: { 0: { nodeType: "StringLiteral", text: "helpers/remove-imports" }, length: 1 } }, questionToken: undefined }, length: 4 } }, length: 1 } }, () => {
+            replaceWith(\`{{expression}}({
+            {{arguments.0.properties.0}},
+            {{arguments.0.properties.1}},
+            {{arguments.0.properties.2}},
+          })\`);
+          });
+        `]);
+      });
+
+      it("gets a delete jsx property", () => {
+        const language = "typescript";
+        const inputs = [`<Field name="email" autoComplete="email" />`];
+        const outputs = [`<Field name="email" />`];
+        const snippet = Magic.call(language, parser, inputs, outputs, NqlOrRules.rules);
+        expect(snippet).toEqual([dedent`
+          withNode({ nodeType: "JsxSelfClosingElement", tagName: "Field", attributes: { nodeType: "JsxAttributes", properties: { 0: { nodeType: "JsxAttribute", name: "name", initializer: { nodeType: "StringLiteral", text: "email" } }, 1: { nodeType: "JsxAttribute", name: "autoComplete", initializer: { nodeType: "StringLiteral", text: "email" } }, length: 2 } } }, () => {
+            delete("attributes.autoCompleteAttribute", { andSpace: true });
+          });
+        `, dedent`
+          withNode({ nodeType: "JsxSelfClosingElement", tagName: "Field", attributes: { nodeType: "JsxAttributes", properties: { 0: { nodeType: "JsxAttribute", name: "name", initializer: { nodeType: "StringLiteral", text: "email" } }, 1: { nodeType: "JsxAttribute", name: "autoComplete", initializer: { nodeType: "StringLiteral", text: "email" } }, length: 2 } } }, () => {
+            delete("attributes.properties.-1", { andSpace: true });
+          });
+        `, dedent`
+          withNode({ nodeType: "JsxSelfClosingElement", tagName: "Field", attributes: { nodeType: "JsxAttributes", properties: { 0: { nodeType: "JsxAttribute", name: "name", initializer: { nodeType: "StringLiteral", text: "email" } }, 1: { nodeType: "JsxAttribute", name: "autoComplete", initializer: { nodeType: "StringLiteral", text: "email" } }, length: 2 } } }, () => {
+            replace("attributes", { with: "{{attributes.properties.0}}" });
+          });
+        `, dedent`
+          withNode({ nodeType: "JsxSelfClosingElement", tagName: "Field", attributes: { nodeType: "JsxAttributes", properties: { 0: { nodeType: "JsxAttribute", name: "name", initializer: { nodeType: "StringLiteral", text: "email" } }, 1: { nodeType: "JsxAttribute", name: "autoComplete", initializer: { nodeType: "StringLiteral", text: "email" } }, length: 2 } } }, () => {
+            replaceWith("<{{tagName}} {{attributes.properties.0}} />");
+          });`,
+        ]);
+      });
+
       it('gets a snippet with empty string', () => {
         const language = "typescript";
         const inputs = ["string.split('')", "str.split('')"];
