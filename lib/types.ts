@@ -20,3 +20,14 @@ export type Snippet = {
 };
 
 export type GenericNode = TypescriptNode | EspreeNode | GonzalesNode;
+
+export type InsertResult = {
+  at: "beginning" | "end";
+  newCode: string;
+  to?: string;
+}
+
+export type ReplaceResult = {
+  key: string;
+  newCode: string;
+}
