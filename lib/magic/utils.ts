@@ -38,10 +38,6 @@ export const getNodeRange = (node: GenericNode): { start :number, end: number } 
   return { start: NodeMutation.getAdapter().getStart(node), end: NodeMutation.getAdapter().getEnd(node) };
 }
 
-export const getSource = (node: GenericNode): string => {
-  return NodeMutation.getAdapter().getSource(node);
-}
-
 export const parseFullCode = (language: string, parser: string, fileName: string, code: string, parent = true) => {
   switch (parser) {
     case "espree":
@@ -103,7 +99,7 @@ export const allEqual = (values: any[]): boolean => values.every(value => value 
 
 export const allUndefined = (values: any[]): boolean => values.every(value => typeof value === "undefined");
 
-export const allNodeTypeEqual = (nodes: GenericNode[]): boolean => nodes.every(node => isNode(node) && NodeQuery.getAdapter().getNodeType(node) === NodeQuery.getAdapter().getNodeType(nodes[0]));
+export const allNodeTypeEqual = (nodes: GenericNode[]): boolean => nodes.every(node => isNode(node) && getNodeType(node) === getNodeType(nodes[0]));
 
 export const allNodesEqual = (nodes: GenericNode[]): boolean => nodes.every(node => nodesEqual(node, nodes[0]));
 
@@ -118,14 +114,19 @@ export const nodesEqual = (node1: GenericNode, node2: GenericNode): boolean => {
   if (!isNode(node2)) {
     return false;
   }
-  return (
-    NodeQuery.getAdapter().getNodeType(node1) == NodeQuery.getAdapter().getNodeType(node2) &&
-    NodeQuery.getAdapter().getSource(node1) == NodeQuery.getAdapter().getSource(node2)
-  )
+  return getNodeType(node1) == getNodeType(node2) && getNodeSource(node1) == getNodeSource(node2);
 }
 
 export const ignoredAttribute = (key: string, value: any): boolean => {
   return ["typeArguments", "exclamationToken"].includes(key) && value === undefined;
+}
+
+export const getNodeType = (node: GenericNode): string => {
+  return NodeQuery.getAdapter().getNodeType(node);
+}
+
+export const getNodeSource = (node: GenericNode): string => {
+  return NodeQuery.getAdapter().getSource(node);
 }
 
 export const getChildKeys = (node: GenericNode): string[] => {

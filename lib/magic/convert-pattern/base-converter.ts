@@ -1,11 +1,188 @@
 import NodeQuery from "@xinminlabs/node-query";
+import NodeMutation from "@xinminlabs/node-mutation";
 import { BuilderNode } from "../builder";
 import  FakeNode from "../fake-node";
-import { nodesEqual, isNode, getNodeRange, getChildKeys, getSource } from "../utils";
-import type { GenericNode } from "../../types";
+import { nodesEqual, isNode, getNodeRange, getChildKeys, getNodeSource, escapeString, getNodeType } from "../utils";
+import type { GenericNode, InsertResult, ReplaceResult } from "../../types";
+
+const PROPERTY_NAMES = {
+  Property: "Property",
+  PropertyAssignment: "Property",
+  JsxAttribute: "Attribute",
+  JSXAttribute: "Attribute",
+}
+
+const PROPERTY_KEY_NAMES = {
+  Property: "key",
+  PropertyAssignment: "name",
+  JSXAttribute: "name",
+  JsxAttribute: "name",
+}
 
 class BaseConverter {
-  constructor(protected inputNodes: GenericNode[], protected outputNodes: GenericNode[], protected builderNode: BuilderNode) {}
+  protected insertResults: InsertResult[] = [];
+  protected deleteResults: (string | string[])[] = [];
+  protected replaceResults: ReplaceResult[] = [];
+
+  constructor(protected inputNodes: GenericNode[], protected outputNodes: GenericNode[], protected builderNode: BuilderNode, protected name?: string) {}
+
+  private addInsertResult({ parentNode, outputChildNode, key, at }: { parentNode: GenericNode, outputChildNode: GenericNode, key: string, at: "beginning" | "end" }) {
+    const parentKeys = key.split(".");
+    const lastKey = parentKeys.pop();
+    const index = getChildKeys(parentNode).indexOf(lastKey);
+    let newKey = lastKey;
+    if (at === "beginning") {
+      getChildKeys(parentNode).slice(index).forEach(childKey => {
+        if (parentNode[childKey]) {
+          newKey = childKey;
+          return;
+        }
+      });
+    } else {
+      getChildKeys(parentNode).slice(0, index).reverse().forEach(childKey => {
+        if (parentNode[childKey]) {
+          newKey = childKey;
+          return;
+        }
+      });
+    }
+    const toKey = [...parentKeys, newKey].join(".");
+    this.addRawInsertResult({ to: toKey, at, newNode: outputChildNode });
+  }
+
+  private addRawInsertResult({ to, at, newNode }: { to: string, at: "beginning" | "end", newNode: GenericNode }) {
+    this.insertResults.push({ to, at, newCode: getNodeSource(newNode) });
+  }
+
+  private addDeleteResult(node: GenericNode, key: string) {
+    if (Object.keys(PROPERTY_NAMES).includes(getNodeType(node))) {
+      const propertyKey = key.split(".").slice(0, -2).join(".") + `.${getNodeSource((node as any)[PROPERTY_KEY_NAMES[getNodeType(node)]])}${PROPERTY_NAMES[getNodeType(node)]}`;
+      if (this.deleteResults.length === 0) {
+        this.deleteResults.push([propertyKey]);
+        this.deleteResults.push([key]);
+      } else {
+        const duplicatedDeleteResults = [...this.deleteResults];
+        duplicatedDeleteResults.forEach((deleteResult: string[]) => deleteResult.push(key));
+        this.deleteResults.forEach((deleteResult: string[]) => deleteResult.push(propertyKey));
+        this.deleteResults = [...this.deleteResults, ...duplicatedDeleteResults];
+      }
+    } else {
+      if (this.deleteResults.length === 0) {
+        this.deleteResults = [key];
+      } else {
+        this.deleteResults.push(key);
+      }
+    }
+  }
+
+  private arrayIndex(arrayNode: GenericNode[], index: number) {
+    if (index === 0) {
+      return 0;
+    }
+    if (index === arrayNode.length - 1) {
+      return -1;
+    }
+
+    return index;
+  }
+
+  private iterateArray(inputNodes: GenericNode[], outputNodes: GenericNode[], key?: string) {
+    if (inputNodes.length === 0 && outputNodes.length !== 0) {
+      this.addRawInsertResult({ to: key, at: "beginning", newNode: outputNodes[0] });
+      return;
+    }
+
+    if (inputNodes.length === outputNodes.length) {
+      inputNodes.forEach((inputNode, index) => {
+        index = this.arrayIndex(outputNodes, index);
+        this.iterateNodes(inputNode, outputNodes[index], `${key}.${index}`);
+      });
+      return
+    }
+
+    if (inputNodes.length < outputNodes.length) {
+      const insertIndices: { outputIndex: number, inputIndex: number }[] = [];
+      let inputIndex = 0;
+      let outputIndex = 0;
+      while (true) {
+        if (outputIndex >= outputNodes.length) {
+          break;
+        }
+
+        if (outputNodes[outputIndex] && inputNodes[inputIndex] && nodesEqual(outputNodes[outputIndex], inputNodes[inputIndex])) {
+          outputIndex++;
+          inputIndex++;
+          continue;
+        }
+        insertIndices.push({ outputIndex, inputIndex });
+        outputIndex++;
+      }
+
+      if (insertIndices.length === outputNodes.length - inputNodes.length) {
+        insertIndices.forEach(({ outputIndex, inputIndex }) => {
+          const index = inputIndex === inputNodes.length? -1 : inputIndex;
+          this.addRawInsertResult({
+            to: key ? `${key}.${index}` : index.toString(),
+            at: index === -1 ? "end" : "beginning",
+            newNode: outputNodes[outputIndex],
+          });
+        });
+      }
+    }
+
+    if (inputNodes.length > outputNodes.length) {
+      let inputIndex = 0;
+      let outputIndex = 0;
+      while (true) {
+        if (inputIndex >= inputNodes.length || outputIndex > outputNodes.length) {
+          break;
+        }
+
+        if (inputNodes[inputIndex] && outputNodes[outputIndex] && nodesEqual(inputNodes[inputIndex], outputNodes[outputIndex])) {
+          inputIndex++;
+          outputIndex++;
+          continue;
+        }
+        const index = this.arrayIndex(inputNodes, inputIndex);
+        this.addDeleteResult(inputNodes[inputIndex], key ? `${key}.${index}` : index.toString());
+        inputIndex++;
+      }
+    }
+  }
+
+  protected iterateNodes(inputNode: GenericNode | GenericNode[], outputNode: GenericNode | GenericNode[], key?: string) {
+    if (Array.isArray(inputNode) && Array.isArray(outputNode)) {
+      this.iterateArray(inputNode, outputNode, key);
+      return;
+    }
+
+    if (isNode(inputNode) && isNode(outputNode)) {
+      // FIXME: iterate hash
+      if (NodeQuery.getAdapter().getNodeType(inputNode) === NodeQuery.getAdapter().getNodeType(outputNode)) {
+        getChildKeys(inputNode).forEach(childKey => {
+          if (nodesEqual(inputNode[childKey], outputNode[childKey])) {
+            return;
+          }
+
+          const newKey = key ? `${key}.${childKey}` : childKey;
+          if (!inputNode[childKey] && outputNode[childKey]) {
+            this.addInsertResult({
+              parentNode: inputNode,
+              outputChildNode: outputNode[childKey] as GenericNode,
+              key: newKey,
+              at: "beginning",
+            });
+            return;
+          }
+          if (!outputNode[childKey] && inputNode[childKey]) {
+            this.addDeleteResult(inputNode[childKey], newKey);
+            return;
+          }
+          this.iterateNodes(inputNode[childKey], outputNode[childKey], newKey);
+        });
+      }
+    }
+  }
 
   /**
    * Replace matching nodes in replacedNode (usually outputNode).
@@ -144,7 +321,7 @@ class BaseConverter {
       return node.toString();
     }
 
-    let sourceCode = getSource(node);
+    let sourceCode = getNodeSource(node);
     this.getAllFakeNodes(node).reverse().forEach(fakeNode => {
       sourceCode = sourceCode.substring(0, fakeNode.range.start) + fakeNode.toString() + sourceCode.substring(fakeNode.range.end);
     });
@@ -166,6 +343,158 @@ class BaseConverter {
       });
     }
     return fakeNodes;
+  }
+
+  protected buildDeletePattern(node: GenericNode, keys: (string | string[])[], builderNode: BuilderNode) {
+    if (keys.length === 0) {
+      return;
+    }
+
+    this.composeDeleteKeys(keys).forEach(key => {
+      builderNode.addSelective((selectiveNode) => {
+        if (Array.isArray(key)) {
+          this.buildMultipleKeysDeletePattern(node, key, selectiveNode);
+        } else {
+          this.buildSingleKeyDeletePattern(node, key, selectiveNode);
+        }
+      });
+    });
+  }
+
+  private composeDeleteKeys(keys: (string | string[])[]) {
+    const newKeys: (string | string[])[] = [keys[0]];
+    let lastParentKey = "";
+    keys.slice(1).forEach((key) => {
+      if (Array.isArray(key)) {
+        newKeys.push(key);
+        lastParentKey = "";
+      } else {
+        const parentKey = this.getParentKey(key);
+        if (lastParentKey.length > 0 && lastParentKey === parentKey) {
+          newKeys[newKeys.length - 1] = [...newKeys[newKeys.length - 1], key];
+        } else {
+          newKeys.push(key);
+        }
+      lastParentKey = parentKey;
+      }
+    });
+    return newKeys;
+  }
+
+  private buildSingleKeyDeletePattern(node: GenericNode, key: string, builderNode: BuilderNode) {
+    let nodeType;
+    if (key.includes(".")) {
+      nodeType = getNodeType(NodeMutation.getAdapter().childNodeValue(node, this.getParentKey(key)));
+    } else {
+      nodeType = getNodeType(node);
+    }
+    if (nodeType === "PropertyAssignment" && key === "initializer") {
+      builderNode.addConvertPattern('delete(["semicolon", "initializer"]);');
+    } else if (nodeType === "Property" && key === "value") {
+      builderNode.addConvertPattern('delete(["semicolon", "value"]);');
+    } else {
+      const jsx = NodeQuery.getAdapter().getNodeType(node).toLowerCase().startsWith("jsx");
+      const andComma = !jsx && /((-?\d)|(Property)|(Initializer)|(Value))$/.test(
+        key.split(".").at(-1)
+      );
+      const andSpace = jsx && /((-?\d)|Attribute)$/.test(
+        key.split(".").at(-1)
+      );
+      builderNode.addConvertPattern(this.buildDeletePatternString(key, andComma, andSpace));
+    }
+  }
+
+  private buildMultipleKeysDeletePattern(node: GenericNode, keys: string[], builderNode: BuilderNode) {
+    if (this.keysHaveCommonParentKey(keys)) {
+      const jsx = NodeQuery.getAdapter().getNodeType(node).toLowerCase().startsWith("jsx");
+      const andComma = !jsx && /((-?\d)|(Property))$/.test(
+        keys.at(-1).split(".").at(-1)
+      );
+      const andSpace = jsx && /((-?\d)|Attribute)$/.test(
+        keys.at(-1).split(".").at(-1)
+      );
+      builderNode.addConvertPattern(this.buildDeletePatternString(keys, andComma, andSpace));
+    } else {
+      keys.forEach((key) => {
+        this.buildSingleKeyDeletePattern(node, key, builderNode);
+      });
+    }
+  }
+
+  private buildDeletePatternString(keys: string | string[], andComma?: boolean, andSpace?: boolean): string {
+    let keyString;
+    if (Array.isArray(keys)) {
+      keyString = `"${keys.join('", "')}"`;
+    } else {
+      keyString = escapeString(keys);
+    }
+    const options = [];
+    if (andComma) {
+      options.push("andComma: true");
+    }
+    if (andSpace) {
+      options.push("andSpace: true");
+    }
+    if (options.length > 0) {
+      return `delete(${keyString}, { ${options.join(", ")} });`;
+    } else {
+      return `delete(${keyString});`
+    }
+  }
+
+  private keysHaveCommonParentKey(keys: string[]): boolean {
+    return new Set(keys.map((key) => this.getParentKey(key))).size === 1;
+  }
+
+  private getParentKey(key: string): string {
+    return key.split(".").slice(0, -1).join(".");
+  }
+
+  protected buildInsertPattern(insertResults: InsertResult[], builderNode: BuilderNode) {
+    if (insertResults.length === 0) {
+      return;
+    }
+
+    const jsx = NodeQuery.getAdapter().getNodeType(this.inputNodes[0]).toLowerCase().startsWith("jsx");
+    const newline = NodeMutation.getAdapter().getEndLoc(this.inputNodes[0]).line !== NodeMutation.getAdapter().getEndLoc(this.outputNodes[0]).line;
+    this.combineInsertResults(insertResults).forEach(result => {
+      const to = result["to"];
+      const lastKey = to.split(".").pop();
+      const andComma = !jsx && /-?\d/.test(lastKey);
+      const andSpace = jsx && /-?\d/.test(lastKey);
+      // FIXME: repalce code?
+      const newCode = result["newCode"];
+      const at = result["at"];
+      let action;
+      if (newline) {
+        action = at == "beginning" ? "insertBefore" : "insertAfter";
+      } else {
+        action = "insert";
+      }
+      builderNode.addConvertPattern(
+        `${action}(${escapeString(newCode)}, ${this.buildInsertOptionsString({ to, at, andComma, andSpace })});`
+      )
+    });
+  }
+
+  private buildInsertOptionsString(options: { at?: string, to?: string, andComma?: boolean, andSpace?: boolean }): string {
+    const results = [];
+    if (options.to) results.push(`to: "${options.to}"`);
+    if (options.at) results.push(`at: "${options.at}"`);
+    if (options.andComma) results.push(`andComma: ${options.andComma}`);
+    if (options.andSpace) results.push(`andSpace: ${options.andSpace}`);
+    return `{ ${results.join(", ")} }`;
+  }
+
+  private combineInsertResults(insertResults: InsertResult[]): InsertResult[] {
+    return insertResults.reduce((newResults, result) => {
+      if (result.to === newResults[newResults.length - 1]?.to && result.at === newResults[newResults.length - 1]?.at) {
+        newResults[newResults.length - 1].newCode += result.newCode;
+      } else {
+        newResults.push(result);
+      }
+      return newResults;
+    }, []);
   }
 }
 
