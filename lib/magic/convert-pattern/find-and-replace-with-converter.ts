@@ -1,6 +1,6 @@
 import clone from "clone";
 import BaseConverter from "./base-converter";
-import { escapeString } from "../utils";
+import { escapeString, getNodeRange } from "../utils";
 
 class FindAndReplaceWithConverter extends BaseConverter {
   call() {
@@ -14,7 +14,7 @@ class FindAndReplaceWithConverter extends BaseConverter {
       return;
     }
 
-    const replacedNode = this.replaceNode(clone(firstOutputNode), firstInputNode);
+    const replacedNode = this.replaceNode(clone(firstOutputNode), firstInputNode, getNodeRange(firstOutputNode).start);
     const newStr = this.generateSourceCode(replacedNode);
     this.builderNode.addConvertPattern(`replaceWith(${escapeString(newStr)});`);
   }
