@@ -1,23 +1,10 @@
 import clone from "clone";
 import NodeQuery from "@xinminlabs/node-query";
 import BaseConverter from "./base-converter";
-import { BuilderNode } from "../builder";
 import { nodesEqual, isNode, getChildKeys, escapeString, getNodeRange } from "../utils";
 import type { GenericNode } from "../../types";
 
-type ReplaceResult = {
-  key: string
-  newCode: string
-}
-
 class FindAndReplaceConverter extends BaseConverter {
-  private replaceResults: ReplaceResult[];
-
-  constructor(protected inputNodes: GenericNode[], protected outputNodes: GenericNode[], protected builderNode: BuilderNode) {
-    super(inputNodes, outputNodes, builderNode);
-    this.replaceResults = [];
-  }
-
   call() {
     if (this.outputNodes.length === 0) {
       return;
@@ -31,6 +18,8 @@ class FindAndReplaceConverter extends BaseConverter {
     patterns.forEach(pattern => {
       this.builderNode.addConvertPattern(pattern);
     });
+    this.buildDeletePattern(firstInputNode, this.deleteResults, this.builderNode);
+    this.buildInsertPattern(this.insertResults, this.builderNode);
   }
 
   /**
