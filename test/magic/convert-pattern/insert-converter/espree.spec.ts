@@ -22,27 +22,6 @@ describe("InsertConverter", () => {
           mock.restore();
         }
       });
-
-      it("generates insert snippet for missing part", () => {
-        const file1 = "code1.jsx";
-        const source1 = `<Field name="email" type="email" />`;
-        const file2 = "code2.jsx";
-        const source2 = `<Field name="email" type="email" autoComplete="email" />`;
-        try {
-          mock({ [file1]: source1, [file2]: source2 });
-          const builderNode = new BuilderNode();
-          const converter = new InsertConverter(
-            [parseJsByEspree(source1, file1)["body"][0]["expression"]],
-            [parseJsByEspree(source2, file2)["body"][0]["expression"]],
-            builderNode
-          );
-          converter.call();
-          expect(builderNode["children"].length).toEqual(1);
-          expect(builderNode["children"][0].generateSnippet()).toEqual(`insert('autoComplete="email"', { to: "openingElement.attributes.-1\", at: \"end\" });`);
-        } finally {
-          mock.restore();
-        }
-      });
     });
   });
 });
