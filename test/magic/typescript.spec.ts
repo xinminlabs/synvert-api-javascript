@@ -78,8 +78,10 @@ describe("Magic", () => {
         const snippet = Magic.call(language, parser, inputs, outputs, NqlOrRules.rules);
         expect(snippet).toEqual([dedent`
           withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$this", name: "hover" }, arguments: { 0: "fn1", 1: "fn2", length: 2 } }, () => {
-            replace("arguments.0", { with: '"mouseleave"' });
-            replace("expression", { with: '{{expression.expression}}.on("mouseenter", {{arguments.0}}).on' });
+            group(() => {
+              replace("arguments.0", { with: '"mouseleave"' });
+              replace("expression", { with: '{{expression.expression}}.on("mouseenter", {{arguments.0}}).on' });
+            });
           });
         `, dedent`
           withNode({ nodeType: "CallExpression", expression: { nodeType: "PropertyAccessExpression", expression: "$this", name: "hover" }, arguments: { 0: "fn1", 1: "fn2", length: 2 } }, () => {

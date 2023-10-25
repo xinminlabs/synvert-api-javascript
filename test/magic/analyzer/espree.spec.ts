@@ -54,8 +54,10 @@ describe("Analyzer", () => {
             `,
             dedent`
               withNode({ nodeType: "JSXElement", openingElement: { nodeType: "JSXOpeningElement", name: { nodeType: "JSXIdentifier" }, attributes: { 0: { nodeType: "JSXAttribute", name: { nodeType: "JSXIdentifier" }, value: { nodeType: "Literal" } }, length: 1 } }, children: { 0: { nodeType: "JSXText" }, length: 1 }, closingElement: { nodeType: "JSXClosingElement", name: { nodeType: "JSXIdentifier" } } }, () => {
-                replace("closingElement", { with: "</Container>" });
-                replace("openingElement", { with: "<Container fluid>" });
+                group(() => {
+                  replace("closingElement", { with: "</Container>" });
+                  replace("openingElement", { with: "<Container fluid>" });
+                });
               });
             `,
             dedent`

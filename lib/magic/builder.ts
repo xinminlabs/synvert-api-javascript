@@ -68,6 +68,13 @@ export class BuilderNode {
       }
       return "";
     }
+    if (this.level === 0 && this.children.length > 1) {
+      return [
+        "  group(() => {",
+        ...this.children.map(childNode => childNode.generateSnippet()).map(snippet => " ".repeat(2) + snippet),
+        "  });",
+      ].join("\n");
+    }
     return this.children.map(childNode => childNode.generateSnippet()).join("\n");
   }
 

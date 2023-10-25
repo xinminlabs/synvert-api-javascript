@@ -29,8 +29,10 @@ describe("Magic", () => {
         const snippet = Magic.call(language, parser, inputs, outputs, NqlOrRules.rules);
         expect(snippet).toEqual([dedent`
           withNode({ nodeType: "CallExpression", callee: { nodeType: "MemberExpression", object: "$this", property: "hover" }, arguments: { 0: "fn1", 1: "fn2", length: 2 } }, () => {
-            replace("arguments.0", { with: '"mouseleave"' });
-            replace("callee", { with: '{{callee.object}}.on("mouseenter", {{arguments.0}}).on' });
+            group(() => {
+              replace("arguments.0", { with: '"mouseleave"' });
+              replace("callee", { with: '{{callee.object}}.on("mouseenter", {{arguments.0}}).on' });
+            });
           });
         `, dedent`
           withNode({ nodeType: "CallExpression", callee: { nodeType: "MemberExpression", object: "$this", property: "hover" }, arguments: { 0: "fn1", 1: "fn2", length: 2 } }, () => {
