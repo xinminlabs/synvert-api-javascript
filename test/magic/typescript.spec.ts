@@ -121,7 +121,7 @@ describe("Magic", () => {
         expect(snippet).toEqual([`insert("console.log('hello world')", { at: "beginning" });`]);
       });
 
-      it("get an insert argument", () => {
+      it("gets an insert argument", () => {
         const language = "javascript";
         const inputs = ["newNdoe(type, content, line, column)"];
         const outputs = ["newNdoe(type, content, line, column, token.sourceFile)"];
@@ -133,6 +133,22 @@ describe("Magic", () => {
         `, dedent`
           withNode({ nodeType: "CallExpression", expression: "newNdoe", arguments: { 0: "type", 1: "content", 2: "line", 3: "column", length: 4 } }, () => {
             replaceWith("{{expression}}({{arguments.0}}, {{arguments.1}}, {{arguments.2}}, {{arguments.3}}, token.sourceFile)");
+          });
+        `]);
+      });
+
+      it.only("gets a delete argument", () => {
+        const language = "javascript";
+        const inputs = ["newNdoe(type, content, line, column, token.sourceFile)"];
+        const outputs = ["newNdoe(type, content, line, column)"];
+        const snippet = Magic.call(language, parser, inputs, outputs, NqlOrRules.rules);
+        expect(snippet).toEqual([dedent`
+          withNode({ nodeType: "CallExpression", expression: "newNdoe", arguments: { 0: "type", 1: "content", 2: "line", 3: "column", 4: { nodeType: "PropertyAccessExpression", expression: "token", name: "sourceFile" }, length: 5 } }, () => {
+            delete("arguments.-1", { andComma: true });
+          });
+        `, dedent`
+          withNode({ nodeType: "CallExpression", expression: "newNdoe", arguments: { 0: "type", 1: "content", 2: "line", 3: "column", 4: { nodeType: "PropertyAccessExpression", expression: "token", name: "sourceFile" }, length: 5 } }, () => {
+            replaceWith("{{expression}}({{arguments.0}}, {{arguments.1}}, {{arguments.2}}, {{arguments.3}})");
           });
         `]);
       });
