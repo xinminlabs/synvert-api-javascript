@@ -59,6 +59,22 @@ describe("Magic", () => {
         expect(snippet).toEqual([`insert("console.log('hello world')", { at: "beginning" });`]);
       });
 
+      it("get an insert argument", () => {
+        const language = "javascript";
+        const inputs = ["newNdoe(type, content, line, column)"];
+        const outputs = ["newNdoe(type, content, line, column, token.sourceFile)"];
+        const snippet = Magic.call(language, parser, inputs, outputs, NqlOrRules.rules);
+        expect(snippet).toEqual([dedent`
+          withNode({ nodeType: "CallExpression", callee: "newNdoe", arguments: { 0: "type", 1: "content", 2: "line", 3: "column", length: 4 } }, () => {
+            insert("token.sourceFile", { to: "arguments.-1", at: "end", andComma: true });
+          });
+        `, dedent`
+          withNode({ nodeType: "CallExpression", callee: "newNdoe", arguments: { 0: "type", 1: "content", 2: "line", 3: "column", length: 4 } }, () => {
+            replaceWith("{{callee}}({{arguments.0}}, {{arguments.1}}, {{arguments.2}}, {{arguments.3}}, token.sourceFile)");
+          });
+        `]);
+      });
+
       it("gets an insert object property", () => {
         const language = "javascript";
         const inputs = [dedent`
