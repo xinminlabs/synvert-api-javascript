@@ -11,6 +11,6 @@ RUN apk update && apk add --no-cache git
 ENV NODE_ENV production
 WORKDIR /app
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/build ./
+COPY --from=builder /app/build ./build
 RUN npm install --only=production
-CMD ["lib/app.js"]
+CMD ["build/lib/app.js"]
