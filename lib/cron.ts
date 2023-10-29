@@ -1,29 +1,40 @@
 import path from "path";
 import { promises as fs } from "fs";
 import crypto from "crypto";
+import Rollbar from 'rollbar';
 import { syncSnippets, readSnippets, availableSnippets, snippetsHome } from "synvert/lib/command";
 import type { Snippet } from "synvert/lib/types";
 
 import { redisClient } from "./connection";
 import { JAVASCRIPT_SNIPPETS, TYPESCRIPT_SNIPPETS, JAVASCRIPT_SNIPPETS_ETAG, TYPESCRIPT_SNIPPETS_ETAG } from "./constants";
 
+const rollbar = new Rollbar({
+  accessToken: process.env.ROLLBAR_ACCESS_TOKEN,
+  captureUncaught: true,
+  captureUnhandledRejections: true,
+});
+
 let snippets: Snippet[] = [];
 
-async function process() {
-  console.log("=====syncing javascript snippets=====");
-  await syncSnippets();
+async function start() {
+  try {
+    console.log("=====syncing javascript snippets=====");
+    await syncSnippets();
 
-  console.log("=====reading javascript snippets=====");
-  await readSnippets();
-  snippets = await availableSnippets();
+    console.log("=====reading javascript snippets=====");
+    await readSnippets();
+    snippets = await availableSnippets();
 
-  console.log("=====saving javascript snippets to db=====");
-  await saveSnippets();
+    console.log("=====saving javascript snippets to db=====");
+    await saveSnippets();
 
-  console.log("=====set javascript snippets etag=====");
-  await saveSnippetsEtag();
+    console.log("=====set javascript snippets etag=====");
+    await saveSnippetsEtag();
 
-  console.log("=====done=====");
+    console.log("=====done=====");
+  } catch (e) {
+    rollbar.error(e);
+  }
 }
 
 async function saveSnippets() {
@@ -57,5 +68,5 @@ function typescriptSnippets(snippets) {
 }
 
 (async () => {
-  await process();
+  await start();
 })();
