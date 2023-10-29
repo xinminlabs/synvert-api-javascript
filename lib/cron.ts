@@ -44,17 +44,18 @@ async function saveSnippets() {
   }
   const client = redisClient();
   await client.connect();
-  await client.set(JAVASCRIPT_SNIPPETS, JSON.stringify(javascriptSnippets(snippets)));
-  await client.set(TYPESCRIPT_SNIPPETS, JSON.stringify(typescriptSnippets(snippets)));
+  console.log(JSON.stringify(camelToSnake(javascriptSnippets(snippets))));
+  await client.set(JAVASCRIPT_SNIPPETS, JSON.stringify(camelToSnake(javascriptSnippets(snippets))));
+  await client.set(TYPESCRIPT_SNIPPETS, JSON.stringify(camelToSnake(typescriptSnippets(snippets))));
   await client.disconnect();
 }
 
 async function saveSnippetsEtag() {
   const client = redisClient();
   await client.connect();
-  const javascriptEtag = crypto.createHash("md5").update(JSON.stringify(javascriptSnippets(snippets))).digest("hex");
+  const javascriptEtag = crypto.createHash("md5").update(await client.get(JAVASCRIPT_SNIPPETS)).digest("hex");
   await client.set(JAVASCRIPT_SNIPPETS_ETAG, javascriptEtag);
-  const typescriptEtag = crypto.createHash("md5").update(JSON.stringify(typescriptSnippets(snippets))).digest("hex");
+  const typescriptEtag = crypto.createHash("md5").update(await client.get(TYPESCRIPT_SNIPPETS)).digest("hex");
   await client.set(TYPESCRIPT_SNIPPETS_ETAG, typescriptEtag);
   await client.disconnect();
 }
@@ -65,6 +66,26 @@ function javascriptSnippets(snippets) {
 
 function typescriptSnippets(snippets) {
   return snippets;
+}
+
+function camelToSnake(obj: any): any {
+  if (typeof obj !== 'object') {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => camelToSnake(item));
+  }
+
+  const snakeObj: { [key: string]: any } = {};
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+      snakeObj[snakeKey] = camelToSnake(obj[key]);
+    }
+  }
+
+  return snakeObj;
 }
 
 (async () => {
