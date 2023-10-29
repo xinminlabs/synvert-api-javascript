@@ -3,8 +3,9 @@ import Rollbar from 'rollbar';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import morgan from 'morgan';
+import { JAVASCRIPT_VERSIONS, JAVASCRIPT_SNIPPETS, TYPESCRIPT_SNIPPETS, JAVASCRIPT_SNIPPETS_ETAG, TYPESCRIPT_SNIPPETS_ETAG } from './constants';
 import { redisClient } from './connection';
-import { generateAst, generateSnippets, parseSynvertSnippet, parseNql, mutateCode, getAllJavascriptSnippetsJson, getAllTypescriptSnippetsJson, getAllSyntaxKind, getTypescriptVersion } from './api';
+import { generateAst, generateSnippets, parseSynvertSnippet, parseNql, mutateCode, getAllSyntaxKind, getTypescriptVersion } from './api';
 import { getFileName, parseCode } from "./magic/utils";
 
 const port = Number(process.env.PORT) || 4000;
@@ -13,9 +14,6 @@ const jsonParser = bodyParser.json();
 app.set('etag', false);
 app.use(cors())
 app.use(morgan('combined'))
-
-const SYNVERT_JAVASCRIPT_SNIPPETS_ETAG = "synvert-javascript-snippets-etag";
-const SYNVERT_TYPESCRIPT_SNIPPETS_ETAG = "synvert-typescript-snippets-etag";
 
 const rollbar = new Rollbar({
   accessToken: process.env.ROLLBAR_ACCESS_TOKEN,
@@ -129,17 +127,19 @@ app.get('/snippets', async (req: Request, res: Response) => {
   const clientEtag = req.get('If-None-Match');
   const client = redisClient();
   await client.connect();
-  const serverEtag = await client.get(language === "typescript" ? SYNVERT_TYPESCRIPT_SNIPPETS_ETAG : SYNVERT_JAVASCRIPT_SNIPPETS_ETAG);
-  client.disconnect();
+  const serverEtag = await client.get(language === "typescript" ? TYPESCRIPT_SNIPPETS_ETAG : JAVASCRIPT_SNIPPETS_ETAG);
   if (clientEtag === serverEtag) {
     res.status(304).end();
+    await client.disconnect();
     return
   }
 
   res.set("ETag", serverEtag);
   res.set('Content-Type', 'application/json');
-  let response = await (language === "typescript" ? getAllTypescriptSnippetsJson : getAllJavascriptSnippetsJson)();
-  res.send(response);
+  let response = await client.get(language === "typescript" ? TYPESCRIPT_SNIPPETS : JAVASCRIPT_SNIPPETS);
+  JSON.parse(response)
+  res.json({ snippets: JSON.parse(response) });
+  await client.disconnect();
 });
 
 // it is deprecated, use /snippets instead and query on client side
@@ -149,7 +149,6 @@ app.get('/snippets', async (req: Request, res: Response) => {
 // });
 
 const ONE_DAY = 60 * 60 * 24;
-const JAVASCRIPT_VERSIONS = 'javascript_versions';
 
 app.get('/check-versions', async (req: Request, res: Response) => {
   const client = redisClient();

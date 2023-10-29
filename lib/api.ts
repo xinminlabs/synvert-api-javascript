@@ -1,11 +1,9 @@
-import { QueryTypes } from "sequelize";
 import { VM } from "vm2";
 import ts from "typescript";
 import fs from "fs";
 import mock from "mock-fs";
 import NodeQuery from "@xinminlabs/node-query";
 import NodeMutation, { ProcessResult } from "@xinminlabs/node-mutation";
-import { databaseClient, redisClient } from './connection';
 import Magic from "./magic";
 import { NqlOrRules } from './magic/types';
 import { getFileName, parseCode, parseFullCode } from "./magic/utils";
@@ -42,38 +40,6 @@ export const parseSynvertSnippet = (language: string, parser: string, code: stri
 
 export const generateSnippets = (language: string, parser: string, inputs: string[], outputs: string[], nqlOrRules = NqlOrRules.nql): string[] => {
   return Magic.call(language, parser, inputs, outputs, nqlOrRules);
-}
-
-const ONE_DAY = 60 * 60 * 24;
-const ALL_JAVASCRIPT_SNIPPETS = "all_javascript_snippets";
-const ALL_TYPESCRIPT_SNIPPETS = "all_typescript_snippets";
-
-export const getAllJavascriptSnippetsJson = async (): Promise<string> => {
-  const client = redisClient();
-  await client.connect();
-  let response = await client.get(ALL_JAVASCRIPT_SNIPPETS);
-  if (!response) {
-    const snippets = await databaseClient().query(`SELECT * FROM javascript_snippets WHERE "group" != 'typescript'`, { type: QueryTypes.SELECT });
-    response = JSON.stringify({ snippets });
-    await client.set(ALL_JAVASCRIPT_SNIPPETS, response);
-    await client.expire(ALL_JAVASCRIPT_SNIPPETS, ONE_DAY);
-  }
-  await client.disconnect();
-  return response;
-}
-
-export const getAllTypescriptSnippetsJson = async (): Promise<string> => {
-  const client = redisClient();
-  await client.connect();
-  let response = await client.get(ALL_TYPESCRIPT_SNIPPETS);
-  if (!response) {
-    const snippets = await databaseClient().query("SELECT * FROM javascript_snippets", { type: QueryTypes.SELECT });
-    response = JSON.stringify({ snippets });
-    await client.set(ALL_TYPESCRIPT_SNIPPETS, response);
-    await client.expire(ALL_TYPESCRIPT_SNIPPETS, ONE_DAY);
-  }
-  await client.disconnect();
-  return response;
 }
 
 // export const querySnippets = async (query: string): Promise<Snippet[]> => {
