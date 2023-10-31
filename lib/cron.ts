@@ -44,7 +44,6 @@ async function saveSnippets() {
   }
   const client = redisClient();
   await client.connect();
-  console.log(JSON.stringify(camelToSnake(javascriptSnippets(snippets))));
   await client.set(JAVASCRIPT_SNIPPETS, JSON.stringify(camelToSnake(javascriptSnippets(snippets))));
   await client.set(TYPESCRIPT_SNIPPETS, JSON.stringify(camelToSnake(typescriptSnippets(snippets))));
   await client.disconnect();
