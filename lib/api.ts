@@ -8,7 +8,7 @@ import Magic from "./magic";
 import { NqlOrRules } from './magic/types';
 import { getFileName, parseCode, parseFullCode } from "./magic/utils";
 import { Rewriter, rewriteSnippetToSyncVersion } from 'synvert-core';
-import type { Location, Range, GenericNode } from "./types";
+import type { Location, Range } from "./types";
 
 export const getTypescriptVersion = () => {
   return ts.version;
@@ -23,13 +23,13 @@ export const generateAst = (language: string, parser: string, code: string): any
   return parseFullCode(language, parser, fileName, code, false);
 }
 
-export const parseSynvertSnippet = (language: string, parser: string, code: string, snippet: string): string => {
+export function parseSynvertSnippet<T>(language: string, parser: string, code: string, snippet: string): string {
   try {
     const fileName = getFileName(language);
     parseCode(language, parser, fileName, code, false);
     parseCode(language, parser, fileName, snippet, false);
     mock({ [fileName]: code });
-    const rewriter: Rewriter<GenericNode> = eval(rewriteSnippetToSyncVersion(formatSnippet(language, parser, snippet)));
+    const rewriter: Rewriter<T> = eval(rewriteSnippetToSyncVersion(formatSnippet(language, parser, snippet)));
     rewriter.processSync();
     return fs.readFileSync(fileName, 'utf-8');
   } finally {
@@ -80,15 +80,15 @@ export const generateSnippets = (language: string, parser: string, inputs: strin
 //   }
 // }
 
-export const parseNql = (
+export function parseNql<T>(
   language: string,
   parser: string,
   nql: string,
   source: string
-): Range[] => {
+): Range[] {
   const fileName = getFileName(language);
   const node = parseFullCode(language, parser, fileName, source, true);
-  const nodeQuery = new NodeQuery<GenericNode>(nql);
+  const nodeQuery = new NodeQuery<T>(nql);
   const matchingNodes = nodeQuery.queryNodes(node);
   return matchingNodes.map((matchingNode) => {
     return {
@@ -98,17 +98,17 @@ export const parseNql = (
   });
 };
 
-export const mutateCode = (
+export function mutateCode<T>(
   language: string,
   parser: string,
   nql: string,
   source: string,
   mutationCode: string
-): ProcessResult => {
+): ProcessResult {
   const fileName = getFileName(language);
   parseCode(language, parser, fileName, mutationCode, true);
   const node = parseFullCode(language, parser, fileName, source, true);
-  const nodeQuery = new NodeQuery<GenericNode>(nql);
+  const nodeQuery = new NodeQuery<T>(nql);
   const matchingNodes = nodeQuery.queryNodes(node);
   const nodeMutation = new NodeMutation<ts.Node>(source);
 
@@ -122,12 +122,12 @@ export const mutateCode = (
   return nodeMutation.process();
 };
 
-const parseStartLocation = (node: GenericNode): Location => {
+function parseStartLocation<T>(node: T): Location {
   const { line, column } = NodeMutation.getAdapter().getStartLoc(node);
   return { line, column: column + 1 };
 };
 
-const parseEndLocation = (node: GenericNode): Location => {
+function parseEndLocation<T>(node: T): Location {
   const { line, column } = NodeMutation.getAdapter().getEndLoc(node);
   return { line, column: column + 1 };
 };

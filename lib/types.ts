@@ -19,8 +19,6 @@ export type Snippet = {
   description: string,
 };
 
-export type GenericNode = TypescriptNode | EspreeNode | GonzalesNode;
-
 export type InsertResult = {
   at: "beginning" | "end";
   newCode: string;

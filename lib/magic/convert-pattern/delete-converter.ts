@@ -1,7 +1,7 @@
 import BaseConverter from "./base-converter";
-import { getChildKeys, getNodeType } from "../utils";
+import { getChildKeys } from "../utils";
 
-class DeleteConverter extends BaseConverter {
+class DeleteConverter<T> extends BaseConverter<T> {
   call() {
     const firstInputNode = this.inputNodes[0];
 

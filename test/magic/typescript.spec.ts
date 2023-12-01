@@ -137,7 +137,7 @@ describe("Magic", () => {
         `]);
       });
 
-      it.only("gets a delete argument", () => {
+      it("gets a delete argument", () => {
         const language = "javascript";
         const inputs = ["newNdoe(type, content, line, column, token.sourceFile)"];
         const outputs = ["newNdoe(type, content, line, column)"];

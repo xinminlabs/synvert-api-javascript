@@ -2,7 +2,7 @@ import clone from "clone";
 import BaseConverter from "./base-converter";
 import { escapeString, getNodeRange } from "../utils";
 
-class FindAndReplaceWithConverter extends BaseConverter {
+class FindAndReplaceWithConverter<T> extends BaseConverter<T> {
   call() {
     if (this.outputNodes.length === 0) {
       return;

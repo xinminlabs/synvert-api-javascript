@@ -4,10 +4,9 @@ import Builder, { BuilderNode } from "./builder";
 import { PATTERNS } from "./convert-pattern";
 import { allArrays, allEqual, allNodes, allNodesEqual, allNodeTypeEqual, allUndefined, getChildKeys, getNodeSource, isNode } from "./utils";
 import InsertConverter from "./convert-pattern/insert-converter";
-import type { GenericNode } from "../types";
 
-class FindPattern {
-  constructor(private inputNodes: GenericNode[], private outputNodes: GenericNode[], private nqlOrRules: NqlOrRules, private convertFunc: (ConvertPatternOptions) => void) {}
+class FindPattern<T> {
+  constructor(private inputNodes: T[], private outputNodes: T[], private nqlOrRules: NqlOrRules, private convertFunc: (ConvertPatternOptions) => void) {}
 
   call(): string[] {
     if (!allUndefined(this.inputNodes) && !allNodeTypeEqual(this.inputNodes)) {
@@ -22,7 +21,7 @@ class FindPattern {
     });
   }
 
-  private nodesPattern(inputNodes: GenericNode[], outputNodes: GenericNode[], builderNode: BuilderNode): void {
+  private nodesPattern(inputNodes: T[], outputNodes: T[], builderNode: BuilderNode): void {
     let patterns = this.generatePatterns(inputNodes);
     if (typeof patterns === "string") {
       // if the input node is a simple Identifier
@@ -62,7 +61,7 @@ class FindPattern {
     }
   }
 
-  private generatePatterns(nodes: GenericNode[]): any {
+  private generatePatterns(nodes: T[]): any {
     if (!allNodeTypeEqual(nodes)) {
       return null;
     }
@@ -88,7 +87,7 @@ class FindPattern {
     return pattern;
   }
 
-  private valueInPattern(value: GenericNode | GenericNode[]): any {
+  private valueInPattern(value: T | T[]): any {
     if (isNode(value)) {
       switch (NodeQuery.getAdapter().getNodeType(value)) {
         case "Identifier":

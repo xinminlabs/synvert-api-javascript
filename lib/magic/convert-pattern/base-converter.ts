@@ -3,7 +3,7 @@ import NodeMutation from "@xinminlabs/node-mutation";
 import { BuilderNode } from "../builder";
 import  FakeNode from "../fake-node";
 import { nodesEqual, isNode, getNodeRange, getChildKeys, getNodeSource, escapeString, getNodeType } from "../utils";
-import type { GenericNode, InsertResult, ReplaceResult } from "../../types";
+import type { InsertResult, ReplaceResult } from "../../types";
 
 const PROPERTY_NAMES = {
   Property: "Property",
@@ -19,14 +19,14 @@ const PROPERTY_KEY_NAMES = {
   JsxAttribute: "name",
 }
 
-class BaseConverter {
+class BaseConverter<T> {
   protected insertResults: InsertResult[] = [];
   protected deleteResults: (string | string[])[] = [];
   protected replaceResults: ReplaceResult[] = [];
 
-  constructor(protected inputNodes: GenericNode[], protected outputNodes: GenericNode[], protected builderNode: BuilderNode, protected name?: string) {}
+  constructor(protected inputNodes: T[], protected outputNodes: T[], protected builderNode: BuilderNode, protected name?: string) {}
 
-  private addInsertResult({ parentNode, outputChildNode, key, at }: { parentNode: GenericNode, outputChildNode: GenericNode, key: string, at: "beginning" | "end" }) {
+  private addInsertResult({ parentNode, outputChildNode, key, at }: { parentNode: T, outputChildNode: T, key: string, at: "beginning" | "end" }) {
     const parentKeys = key.split(".");
     const lastKey = parentKeys.pop();
     const index = getChildKeys(parentNode).indexOf(lastKey);
@@ -50,11 +50,11 @@ class BaseConverter {
     this.addRawInsertResult({ to: toKey, at, newNode: outputChildNode });
   }
 
-  private addRawInsertResult({ to, at, newNode }: { to: string, at: "beginning" | "end", newNode: GenericNode }) {
+  private addRawInsertResult({ to, at, newNode }: { to: string, at: "beginning" | "end", newNode: T }) {
     this.insertResults.push({ to, at, newCode: getNodeSource(newNode) });
   }
 
-  private addDeleteResult(node: GenericNode, key: string) {
+  private addDeleteResult(node: T, key: string) {
     if (Object.keys(PROPERTY_NAMES).includes(getNodeType(node))) {
       const propertyKey = key.split(".").slice(0, -2).join(".") + `.${getNodeSource((node as any)[PROPERTY_KEY_NAMES[getNodeType(node)]])}${PROPERTY_NAMES[getNodeType(node)]}`;
       if (this.deleteResults.length === 0) {
@@ -75,7 +75,7 @@ class BaseConverter {
     }
   }
 
-  private arrayIndex(arrayNode: GenericNode[], index: number) {
+  private arrayIndex(arrayNode: T[], index: number) {
     if (index === 0) {
       return 0;
     }
@@ -86,7 +86,7 @@ class BaseConverter {
     return index;
   }
 
-  private iterateArray(inputNodes: GenericNode[], outputNodes: GenericNode[], key?: string) {
+  private iterateArray(inputNodes: T[], outputNodes: T[], key?: string) {
     if (inputNodes.length === 0 && outputNodes.length !== 0) {
       this.addRawInsertResult({ to: key, at: "beginning", newNode: outputNodes[0] });
       return;
@@ -150,7 +150,7 @@ class BaseConverter {
     }
   }
 
-  protected iterateNodes(inputNode: GenericNode | GenericNode[], outputNode: GenericNode | GenericNode[], key?: string) {
+  protected iterateNodes(inputNode: T | T[], outputNode: T | T[], key?: string) {
     if (Array.isArray(inputNode) && Array.isArray(outputNode)) {
       this.iterateArray(inputNode, outputNode, key);
       return;
@@ -168,7 +168,7 @@ class BaseConverter {
           if (!inputNode[childKey] && outputNode[childKey]) {
             this.addInsertResult({
               parentNode: inputNode,
-              outputChildNode: outputNode[childKey] as GenericNode,
+              outputChildNode: outputNode[childKey] as T,
               key: newKey,
               at: "beginning",
             });
@@ -193,7 +193,7 @@ class BaseConverter {
    * @param key {string} node key to reach replacedNode from outputNode
    * @returns node that has already been replaced
    */
-  protected replaceNode(replacedNode: GenericNode | FakeNode, inputNode: GenericNode | GenericNode[], startPosition: number = 0, key?: string): GenericNode | FakeNode {
+  protected replaceNode(replacedNode: T | FakeNode, inputNode: T | T[], startPosition: number = 0, key?: string): T | FakeNode {
     if (Array.isArray(inputNode)) {
       inputNode.forEach((inputChildNode, index) => {
         if (!(replacedNode instanceof FakeNode)) {
@@ -202,7 +202,7 @@ class BaseConverter {
           if (found) {
             while (found) {
               replacedNode = result;
-              [found, result] = this.findAndReplaceWith(replacedNode as GenericNode, inputChildNode, startPosition, replaceKey);
+              [found, result] = this.findAndReplaceWith(replacedNode as T, inputChildNode, startPosition, replaceKey);
             }
           } else {
             replacedNode = this.replaceNode(replacedNode, inputChildNode, startPosition, replaceKey);
@@ -217,7 +217,7 @@ class BaseConverter {
           if (found) {
             while (found) {
               replacedNode = result;
-              [found, result] = this.findAndReplaceWith(replacedNode as GenericNode, inputNode[childKey], startPosition, replaceKey);
+              [found, result] = this.findAndReplaceWith(replacedNode as T, inputNode[childKey], startPosition, replaceKey);
             }
           } else {
             replacedNode = this.replaceNode(replacedNode, inputNode[childKey], startPosition, replaceKey);
@@ -236,7 +236,7 @@ class BaseConverter {
    * @param fakeNodeName {string} fake node name
    * @returns {[boolean, FakeNode|Node|null]} [found, replaced node]
    */
-  protected findAndReplaceWith(node: GenericNode, targetNode: GenericNode, startPosition: number, fakeNodeName: string): [boolean, FakeNode | GenericNode | null] {
+  protected findAndReplaceWith(node: T, targetNode: T, startPosition: number, fakeNodeName: string): [boolean, FakeNode | T | null] {
     const fakeNode = new FakeNode(fakeNodeName);
     if (nodesEqual(node, targetNode)) {
       const range = getNodeRange(targetNode);
@@ -254,13 +254,13 @@ class BaseConverter {
    * Find the target node in the node, and return the names of the node to reach target node.
    * @example
    * The source code of the node is `$.isArray(foo, bar)`,
-   * and the soruce code of the target node is `bar`,
+   * and the source code of the target node is `bar`,
    * then `findNames(node, targetNode)` is `["arguments", "1"]`
    * @param node {Node | Node[]} the node
    * @param targetNode {Node} the target node
    * @returns {string[]} the names to reach target node
    */
-  protected findNames(node: GenericNode | GenericNode[], targetNode: GenericNode): string[] {
+  protected findNames(node: T | T[], targetNode: T): string[] {
     if (Array.isArray(node)) {
       for (let index = 0; index < node.length; index++) {
         if (nodesEqual(node[index], targetNode)) {
@@ -294,12 +294,12 @@ class BaseConverter {
   /**
    * Replace target node with fake node, target node is reached from node by names.
    * @param node {Node} the node
-   * @param names {stirng[]} names to reach target node
+   * @param names {string[]} names to reach target node
    * @param fakeNode {FakeNode} fake node
    * @param startPosition {number} start position for fake node range
    * @returns {Node} the node with replaced fake node
    */
-  protected deepUpdated(node: GenericNode, names: string[], fakeNode: FakeNode, startPosition: number): GenericNode {
+  protected deepUpdated(node: T, names: string[], fakeNode: FakeNode, startPosition: number): T {
     const name = names.shift();
     if (names.length == 0) {
       const range = getNodeRange(node[name]);
@@ -316,7 +316,7 @@ class BaseConverter {
    * @param node {Node|FakeNode} the node
    * @returns {string} the source code
    */
-   protected generateSourceCode(node: GenericNode | FakeNode): string {
+   protected generateSourceCode(node: T | FakeNode): string {
     if (node instanceof FakeNode) {
       return node.toString();
     }
@@ -333,7 +333,7 @@ class BaseConverter {
    * @param node {Node|FakeNode} the node
    * @returns {FakeNode[]} all fake nodes
    */
-  protected getAllFakeNodes(node: GenericNode | FakeNode): FakeNode[] {
+  protected getAllFakeNodes(node: T | FakeNode): FakeNode[] {
     const fakeNodes = [];
     if (node instanceof FakeNode) {
       fakeNodes.push(node);
@@ -345,7 +345,7 @@ class BaseConverter {
     return fakeNodes;
   }
 
-  protected buildDeletePattern(node: GenericNode, keys: (string | string[])[], builderNode: BuilderNode) {
+  protected buildDeletePattern(node: T, keys: (string | string[])[], builderNode: BuilderNode) {
     if (keys.length === 0) {
       return;
     }
@@ -381,7 +381,7 @@ class BaseConverter {
     return newKeys;
   }
 
-  private buildSingleKeyDeletePattern(node: GenericNode, key: string, builderNode: BuilderNode) {
+  private buildSingleKeyDeletePattern(node: T, key: string, builderNode: BuilderNode) {
     let nodeType;
     if (key.includes(".")) {
       nodeType = getNodeType(NodeMutation.getAdapter().childNodeValue(node, this.getParentKey(key)));
@@ -404,7 +404,7 @@ class BaseConverter {
     }
   }
 
-  private buildMultipleKeysDeletePattern(node: GenericNode, keys: string[], builderNode: BuilderNode) {
+  private buildMultipleKeysDeletePattern(node: T, keys: string[], builderNode: BuilderNode) {
     if (this.keysHaveCommonParentKey(keys)) {
       const jsx = NodeQuery.getAdapter().getNodeType(node).toLowerCase().startsWith("jsx");
       const andComma = !jsx && /((-?\d)|(Property))$/.test(
@@ -462,7 +462,7 @@ class BaseConverter {
       const lastKey = to.split(".").pop();
       const andComma = !jsx && /-?\d/.test(lastKey);
       const andSpace = jsx && /-?\d/.test(lastKey);
-      // FIXME: repalce code?
+      // FIXME: replace code?
       const newCode = result["newCode"];
       const at = result["at"];
       let action;

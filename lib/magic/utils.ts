@@ -8,7 +8,6 @@ import { KeyNotFoundError } from "./error";
 import * as espree from "@xinminlabs/espree";
 import gonzales, { Node as GonzalesNode } from "@xinminlabs/gonzales-pe";
 import { Node as EspreeNode } from "acorn";
-import type { GenericNode } from "../types";
 
 export const getFileExtension = (language: string): string => {
   switch (language) {
@@ -34,7 +33,7 @@ export const getFileName = (language: string): string => {
   return `code.${extension}`;
 }
 
-export const getNodeRange = (node: GenericNode): { start :number, end: number } => {
+export function getNodeRange<T>(node: T): { start :number, end: number } {
   return { start: NodeMutation.getAdapter().getStart(node), end: NodeMutation.getAdapter().getEnd(node) };
 }
 
@@ -63,9 +62,9 @@ export const parseCode = (language: string, parser: string, fileName: string, co
 export const parseCodeByTypescript = (code: string, filePath: string, scriptKind: ScriptKind, parent = true): TypescriptNode => {
   const node = createSourceFile(filePath, code, ScriptTarget.Latest, parent, scriptKind);
   const program = createProgram([filePath], {});
-  const diagnotics = program.getSyntacticDiagnostics(node);
-  if (diagnotics.length > 0) {
-    throw new SyntaxError(diagnotics[0].messageText.toString());
+  const diagnostics = program.getSyntacticDiagnostics(node);
+  if (diagnostics.length > 0) {
+    throw new SyntaxError(diagnostics[0].messageText.toString());
   }
   return node;
 }
@@ -85,7 +84,7 @@ export const parseCodeByGonzalesPe = (code: string, filePath: string): GonzalesN
   return gonzales.parse(code, { syntax, sourceFile: filePath });
 }
 
-export const isNode = (value: any): value is GenericNode => isTypescriptNode(value) || isEspreeNode(value) || isGonzalesNode(value);
+export const isNode = (value: any): value is TypescriptNode | EspreeNode | GonzalesNode => isTypescriptNode(value) || isEspreeNode(value) || isGonzalesNode(value);
 
 const isTypescriptNode = (value: any): value is TypescriptNode => value && value instanceof Object && 'kind' in value;
 const isEspreeNode = (value: any): value is EspreeNode => value && value instanceof Object && 'type' in value && 'loc' in value;
@@ -99,15 +98,19 @@ export const allEqual = (values: any[]): boolean => values.every(value => value 
 
 export const allUndefined = (values: any[]): boolean => values.every(value => typeof value === "undefined");
 
-export const allNodeTypeEqual = (nodes: GenericNode[]): boolean => nodes.every(node => isNode(node) && getNodeType(node) === getNodeType(nodes[0]));
+export function allNodeTypeEqual<T>(nodes: T[]): boolean {
+  return nodes.every(node => isNode(node) && getNodeType(node) === getNodeType(nodes[0]));
+}
 
-export const allNodesEqual = (nodes: GenericNode[]): boolean => nodes.every(node => nodesEqual(node, nodes[0]));
+export function allNodesEqual<T>(nodes: T[]): boolean {
+  return nodes.every(node => nodesEqual(node, nodes[0]));
+}
 
-export const nodeIsNull = (node: GenericNode): boolean => {
+export function nodeIsNull<T>(node: T): boolean {
   return (typeof node === "undefined") || (Array.isArray(node["body"]) && node["body"].length === 0);
 }
 
-export const nodesEqual = (node1: GenericNode, node2: GenericNode): boolean => {
+export function nodesEqual<T>(node1: T, node2: T): boolean {
   if (!isNode(node1)) {
     return false;
   }
@@ -121,15 +124,15 @@ export const ignoredAttribute = (key: string, value: any): boolean => {
   return ["typeArguments", "exclamationToken"].includes(key) && value === undefined;
 }
 
-export const getNodeType = (node: GenericNode): string => {
+export function getNodeType<T>(node: T): string {
   return NodeQuery.getAdapter().getNodeType(node);
 }
 
-export const getNodeSource = (node: GenericNode): string => {
+export function getNodeSource<T>(node: T): string {
   return NodeQuery.getAdapter().getSource(node);
 }
 
-export const getChildKeys = (node: GenericNode): string[] => {
+export function getChildKeys<T>(node: T): string[] {
   const nodeType = NodeQuery.getAdapter().getNodeType(node)
   let childKeys;
   if (isTypescriptNode(node)) {

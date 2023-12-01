@@ -1,11 +1,9 @@
-import NodeQuery from "@xinminlabs/node-query";
 import BaseConverter from "./base-converter";
 import { BuilderNode } from "../builder";
 import { escapeString, getChildKeys, isNode, nodeIsNull, nodesEqual, getNodeSource, getNodeRange } from "../utils";
-import type { GenericNode } from "../../types";
 
-class FindAndInsertConverter extends BaseConverter {
-  constructor(protected inputNodes: GenericNode[], protected outputNodes: GenericNode[], protected builderNode: BuilderNode) {
+class FindAndInsertConverter<T> extends BaseConverter<T> {
+  constructor(protected inputNodes: T[], protected outputNodes: T[], protected builderNode: BuilderNode) {
     super(inputNodes, outputNodes, builderNode);
     this.insertResults = [];
   }

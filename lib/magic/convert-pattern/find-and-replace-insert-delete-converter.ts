@@ -2,9 +2,8 @@ import clone from "clone";
 import NodeQuery from "@xinminlabs/node-query";
 import BaseConverter from "./base-converter";
 import { nodesEqual, isNode, getChildKeys, escapeString, getNodeRange } from "../utils";
-import type { GenericNode } from "../../types";
 
-class FindAndReplaceConverter extends BaseConverter {
+class FindAndReplaceConverter<T> extends BaseConverter<T> {
   call() {
     if (this.outputNodes.length === 0) {
       return;
@@ -29,7 +28,7 @@ class FindAndReplaceConverter extends BaseConverter {
    * @param key {string}
    * @returns {boolean} if replace the whole node
    */
-  private replaceChildNode(inputNode: GenericNode | GenericNode[], outputNode: GenericNode | GenericNode[], key?: string): boolean {
+  private replaceChildNode(inputNode: T | T[], outputNode: T | T[], key?: string): boolean {
     if (Array.isArray(inputNode) && Array.isArray(outputNode)) {
       if (inputNode.length !== outputNode.length) {
         return true;
@@ -92,7 +91,7 @@ class FindAndReplaceConverter extends BaseConverter {
             return false;
           }
           if (NodeQuery.getAdapter().getNodeType(inputChildNode) !== NodeQuery.getAdapter().getNodeType(outputChildNode)) {
-            this.addReplaceResult(replaceKey, outputChildNode);
+            this.addReplaceResult(replaceKey, outputChildNode as T);
             return true;
           }
         }
@@ -137,7 +136,7 @@ class FindAndReplaceConverter extends BaseConverter {
     return patterns;
   }
 
-  private addReplaceResult(key: string, outputChildNode: GenericNode[] | GenericNode | string) {
+  private addReplaceResult(key: string, outputChildNode: T[] | T | string) {
     if (Array.isArray(outputChildNode)) {
       const newCode = outputChildNode.map((childNode) => {
         const replacedNode = this.replaceNode(clone(childNode), this.inputNodes[0], getNodeRange(childNode).start);
@@ -147,12 +146,12 @@ class FindAndReplaceConverter extends BaseConverter {
         return;
       }
       this.replaceResults.push({ key, newCode });
+    } else if (typeof outputChildNode === "string") {
+      this.replaceResults.push({ key, newCode: outputChildNode });
     } else if (isNode(outputChildNode)) {
       const replacedNode = this.replaceNode(clone(outputChildNode), this.inputNodes[0], getNodeRange(outputChildNode).start);
       const newCode = this.generateSourceCode(replacedNode);
       this.replaceResults.push({ key, newCode });
-    } else {
-      this.replaceResults.push({ key, newCode: outputChildNode });
     }
   }
 }

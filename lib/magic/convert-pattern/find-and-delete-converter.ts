@@ -1,7 +1,7 @@
 import BaseConverter from "./base-converter";
 import { getChildKeys, isNode, nodesEqual } from "../utils";
 
-class FindAndDeleteConverter extends BaseConverter {
+class FindAndDeleteConverter<T> extends BaseConverter<T> {
   call() {
     if (this.outputIsAChildOfInputAndDelete()) {
       return;
