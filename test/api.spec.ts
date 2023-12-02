@@ -14,7 +14,7 @@ describe("getAllSyntaxKind", () => {
   });
 });
 
-describe("genereteAst", () => {
+describe("generateAst", () => {
   describe("typescript", () => {
     it("gets node from source code", () => {
       const code = "class Synvert {}";
@@ -136,7 +136,7 @@ describe("parseSynvertSnippet", () => {
   });
 });
 
-describe("genereteSnippets", () => {
+describe("generateSnippets", () => {
   it("gets snippet with rules", () => {
     const language = "typescript";
     const parser = "typescript";
