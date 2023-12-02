@@ -1,4 +1,5 @@
-import NodeQuery from "@xinminlabs/node-query";
+import { Adapter as QueryAdapter, TypescriptAdapter as QueryTypescriptAdapter, EspreeAdapter as QueryEspreeAdapter, GonzalesPeAdapter as QueryGonzalesPeAdapter } from "@xinminlabs/node-query";
+import { Adapter as MutationAdapter, TypescriptAdapter as MutationTypescriptAdapter, EspreeAdapter as MutationEspreeAdapter, GonzalesPeAdapter as MutationGonzalesPeAdapter } from "@xinminlabs/node-mutation";
 import { ConvertPatternOptions, NqlOrRules } from "./types";
 import Builder, { BuilderNode } from "./builder";
 import { PATTERNS } from "./convert-pattern";
@@ -6,13 +7,25 @@ import { allArrays, allEqual, allNodes, allNodesEqual, allNodeTypeEqual, allUnde
 import InsertConverter from "./convert-pattern/insert-converter";
 
 class FindPattern<T> {
-  constructor(private inputNodes: T[], private outputNodes: T[], private nqlOrRules: NqlOrRules, private convertFunc: (ConvertPatternOptions) => void) {}
+  constructor(private parser: string, private inputNodes: T[], private outputNodes: T[], private nqlOrRules: NqlOrRules, private convertFunc: (ConvertPatternOptions) => void) {}
 
   call(): string[] {
-    if (!allUndefined(this.inputNodes) && !allNodeTypeEqual(this.inputNodes)) {
+    if (this.inputNodes.every(node => node && this.nodeQueryAdapter().getNodeType(node) === "ExpressionStatement")) {
+      this.inputNodes = this.inputNodes.map(node => node["expression"]);
+    }
+    if (this.outputNodes.every(node => node && this.nodeQueryAdapter().getNodeType(node) === "ExpressionStatement")) {
+      this.outputNodes = this.outputNodes.map(node => node["expression"]);
+    }
+    if (this.inputNodes.every(node => node && this.nodeQueryAdapter().getNodeType(node) === "stylesheet")) {
+      this.inputNodes = this.inputNodes.map(node => node["content"][0]);
+    }
+    if (this.outputNodes.every(node => node && this.nodeQueryAdapter().getNodeType(node) === "stylesheet")) {
+      this.outputNodes = this.outputNodes.map(node => node["content"][0]);
+    }
+    if (!allUndefined(this.inputNodes) && !allNodeTypeEqual(this.inputNodes, this.nodeQueryAdapter())) {
       throw new Error("Input node types are not same");
     }
-    if (!allUndefined(this.outputNodes) && !allNodeTypeEqual(this.outputNodes)) {
+    if (!allUndefined(this.inputNodes) && !allNodeTypeEqual(this.inputNodes, this.nodeQueryAdapter())) {
       throw new Error("Output node types are not same");
     }
 
@@ -28,7 +41,7 @@ class FindPattern<T> {
       patterns = { nodeType: "Identifier", escapedText: patterns };
     }
     if (inputNodes.every(node => typeof node === "undefined")) {
-      new InsertConverter(inputNodes, outputNodes, builderNode).call();
+      new InsertConverter(this.parser, inputNodes, outputNodes, builderNode).call();
       return;
     }
 
@@ -37,6 +50,7 @@ class FindPattern<T> {
         Object.keys(PATTERNS).forEach(converterType => {
           findPatternNode.addSelective((selectiveNode) => {
             this.convertFunc.call(this, {
+              parser: this.parser,
               inputNodes,
               outputNodes,
               builderNode: selectiveNode,
@@ -50,6 +64,7 @@ class FindPattern<T> {
         Object.keys(PATTERNS).forEach(converterType => {
           findPatternNode.addSelective((selectiveNode) => {
             this.convertFunc.call(this, {
+              parser: this.parser,
               inputNodes,
               outputNodes,
               builderNode: selectiveNode,
@@ -62,20 +77,20 @@ class FindPattern<T> {
   }
 
   private generatePatterns(nodes: T[]): any {
-    if (!allNodeTypeEqual(nodes)) {
+    if (!allNodeTypeEqual(nodes, this.nodeQueryAdapter())) {
       return null;
     }
-    if (allNodesEqual(nodes)) {
+    if (allNodesEqual(nodes, this.nodeQueryAdapter())) {
       return this.valueInPattern(nodes[0]);
     }
 
-    const nodeType = NodeQuery.getAdapter().getNodeType(nodes[0]);
+    const nodeType = this.nodeQueryAdapter().getNodeType(nodes[0]);
     const pattern = { nodeType: nodeType };
-    getChildKeys(nodes[0]).forEach(key => {
+    getChildKeys(nodes[0], this.nodeQueryAdapter()).forEach(key => {
       const values = nodes.map(node => node[key]);
       if (allEqual(values)) {
         pattern[key] = this.valueInPattern(values[0]);
-      } else if (allNodes(values) && allNodeTypeEqual(values)) {
+      } else if (allNodes(values) && allNodeTypeEqual(values, this.nodeQueryAdapter())) {
         pattern[key] = this.generatePatterns(values);
       } else if (allArrays(values) && allEqual(values.map(value => value.length))) {
         pattern[key] = { length: values[0].length };
@@ -89,14 +104,14 @@ class FindPattern<T> {
 
   private valueInPattern(value: T | T[]): any {
     if (isNode(value)) {
-      switch (NodeQuery.getAdapter().getNodeType(value)) {
+      switch (this.nodeQueryAdapter().getNodeType(value)) {
         case "Identifier":
         case "JsxText":
-          return getNodeSource(value);
+          return getNodeSource(value, this.nodeQueryAdapter());
         default:
-          const inputType = NodeQuery.getAdapter().getNodeType(value);
+          const inputType = this.nodeQueryAdapter().getNodeType(value);
           const result = { nodeType: inputType };
-          getChildKeys(value).forEach(key => {
+          getChildKeys(value, this.nodeQueryAdapter()).forEach(key => {
             result[key] = this.valueInPattern(value[key]);
           });
           return result;
@@ -107,6 +122,32 @@ class FindPattern<T> {
       return result;
     } else {
       return value;
+    }
+  }
+
+  private nodeQueryAdapter() {
+    switch (this.parser) {
+      case "typescript":
+        return new QueryTypescriptAdapter() as QueryAdapter<T>;
+      case "espree":
+        return new QueryEspreeAdapter() as QueryAdapter<T>;
+      case "gonzales-pe":
+        return new QueryGonzalesPeAdapter() as QueryAdapter<T>;
+      default:
+        throw new Error("Unknown node query parser");
+    }
+  }
+
+  private nodeMutationAdapter() {
+    switch (this.parser) {
+      case "typescript":
+        return new MutationTypescriptAdapter() as MutationAdapter<T>;
+      case "espree":
+        return new MutationEspreeAdapter() as MutationAdapter<T>;
+      case "gonzales-pe":
+        return new MutationGonzalesPeAdapter() as MutationAdapter<T>;
+      default:
+        throw new Error("Unknown node mutation parser");
     }
   }
 }

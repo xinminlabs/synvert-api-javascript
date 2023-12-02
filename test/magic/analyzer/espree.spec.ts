@@ -1,17 +1,10 @@
 import dedent from "dedent";
-import NodeQuery, { EspreeAdapter as QueryEspreeAdapter } from "@xinminlabs/node-query";
-import NodeMutation, { EspreeAdapter as MutationEspreeAdapter } from "@xinminlabs/node-mutation";
 import Analyzer from "../../../lib/magic/analyzer";
 import { NqlOrRules } from "../../../lib/magic/types";
 
 describe("Analyzer", () => {
   describe("#call", () => {
     describe("espree", () => {
-      beforeEach(() => {
-        NodeQuery.configure({ adapter: new QueryEspreeAdapter() });
-        NodeMutation.configure({ adapter: new MutationEspreeAdapter() });
-      })
-
       describe("js", () => {
         it("gets pattern", () => {
           const inputs = ["$.isArray(foo)", "$.isArray(bar)"];

@@ -1,11 +1,14 @@
+import { Node } from "acorn";
 import mock from "mock-fs";
 import { BuilderNode } from "../../../../lib/magic/builder";
 import FindAndDeleteConverter from "../../../../lib/magic/convert-pattern/find-and-delete-converter";
 import { parseJsByEspree } from "../../../test-helper";
 
 describe("FindAndDeleteConverter", () => {
-  describe("#call", () => {
-    describe("espree", () => {
+  describe("espree", () => {
+    const parser = "espree";
+
+    describe("#call", () => {
       it("generates delete snippet for property", () => {
         const file1 = "code1.js";
         const source1 = `
@@ -27,7 +30,8 @@ describe("FindAndDeleteConverter", () => {
         try {
           mock({ [file1]: source1, [file2]: source2 });
           const builderNode = new BuilderNode();
-          const converter = new FindAndDeleteConverter(
+          const converter = new FindAndDeleteConverter<Node>(
+            parser,
             [parseJsByEspree(source1, file1)["body"][0]["expression"]],
             [parseJsByEspree(source2, file2)["body"][0]["expression"]],
             builderNode
@@ -51,7 +55,8 @@ describe("FindAndDeleteConverter", () => {
         try {
           mock({ [file1]: source1, [file2]: source2 });
           const builderNode = new BuilderNode();
-          const converter = new FindAndDeleteConverter(
+          const converter = new FindAndDeleteConverter<Node>(
+            parser,
             [parseJsByEspree(source1, file1)["body"][0]["expression"], "code1.jsx"],
             [parseJsByEspree(source2, file2)["body"][0]["expression"], "code2.jsx"],
             builderNode

@@ -17,19 +17,7 @@ class Analyzer {
       mock(mockFiles);
       let inputNodes = this.inputs.map((input, index) => parseCode(this.language, this.parser, `input${index}.${fileExtension}`, input));
       let outputNodes = this.outputs.map((output, index) => parseCode(this.language, this.parser, `output${index}.${fileExtension}`, output));
-      if (inputNodes.every(node => node && NodeQuery.getAdapter().getNodeType(node) === "ExpressionStatement")) {
-        inputNodes = inputNodes.map(node => node["expression"]);
-      }
-      if (outputNodes.every(node => node && NodeQuery.getAdapter().getNodeType(node) === "ExpressionStatement")) {
-        outputNodes = outputNodes.map(node => node["expression"]);
-      }
-      if (inputNodes.every(node => node && NodeQuery.getAdapter().getNodeType(node) === "stylesheet")) {
-        inputNodes = inputNodes.map(node => node["content"][0]);
-      }
-      if (outputNodes.every(node => node && NodeQuery.getAdapter().getNodeType(node) === "stylesheet")) {
-        outputNodes = outputNodes.map(node => node["content"][0]);
-      }
-      return new FindPattern(inputNodes, outputNodes, this.nqlOrRules, (options) => {
+      return new FindPattern(this.parser, inputNodes, outputNodes, this.nqlOrRules, (options) => {
         new ConvertPattern(options).call();
       }).call();
     } finally {

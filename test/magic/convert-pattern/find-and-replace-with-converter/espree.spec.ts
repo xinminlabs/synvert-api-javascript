@@ -1,11 +1,14 @@
+import { Node } from "acorn";
 import mock from "mock-fs";
 import { BuilderNode } from "../../../../lib/magic/builder";
 import FindAndReplaceWithConverter from "../../../../lib/magic/convert-pattern/find-and-replace-with-converter";
 import { parseJsByEspree } from "../../../test-helper";
 
 describe("FindAndReplaceWithConverter", () => {
-  describe("#call", () => {
-    describe("typescript", () => {
+  describe("espree", () => {
+    const parser = "espree";
+
+    describe("#call", () => {
       it("generates replaceWith snippet", () => {
         const inputFile1 = "input1.js";
         const inputSource1 = "$.isArray(foo)";
@@ -26,7 +29,7 @@ describe("FindAndReplaceWithConverter", () => {
             parseJsByEspree(outputSource2, outputFile2)["body"][0]["expression"],
           ];
           const builderNode = new BuilderNode();
-          const converter = new FindAndReplaceWithConverter(inputNodes, outputNodes, builderNode);
+          const converter = new FindAndReplaceWithConverter<Node>(parser, inputNodes, outputNodes, builderNode);
           converter.call();
           expect(builderNode["children"].length).toEqual(1);
           expect(builderNode["children"][0].generateSnippet()).toEqual(`replaceWith("jQuery.{{callee.property}}({{arguments.0}})");`);

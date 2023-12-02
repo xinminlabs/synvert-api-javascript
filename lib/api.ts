@@ -3,7 +3,7 @@ import ts from "typescript";
 import fs from "fs";
 import mock from "mock-fs";
 import NodeQuery from "@xinminlabs/node-query";
-import NodeMutation, { ProcessResult } from "@xinminlabs/node-mutation";
+import NodeMutation, { ProcessResult, Adapter as MutationAdapter, TypescriptAdapter as MutationTypescriptAdapter, EspreeAdapter as MutationEspreeAdapter, GonzalesPeAdapter as MutationGonzalesPeAdapter } from "@xinminlabs/node-mutation";
 import Magic from "./magic";
 import { NqlOrRules } from './magic/types';
 import { getFileName, parseCode, parseFullCode } from "./magic/utils";
@@ -88,12 +88,13 @@ export function parseNql<T>(
 ): Range[] {
   const fileName = getFileName(language);
   const node = parseFullCode(language, parser, fileName, source, true);
-  const nodeQuery = new NodeQuery<T>(nql);
+  const nodeQuery = new NodeQuery<T>(nql, { adapter: parser });
+  const mutationAdapter = nodeMutationAdapter<T>(parser);
   const matchingNodes = nodeQuery.queryNodes(node);
   return matchingNodes.map((matchingNode) => {
     return {
-      start: parseStartLocation(matchingNode),
-      end: parseEndLocation(matchingNode),
+      start: parseStartLocation(matchingNode, mutationAdapter),
+      end: parseEndLocation(matchingNode, mutationAdapter),
     };
   });
 };
@@ -108,9 +109,9 @@ export function mutateCode<T>(
   const fileName = getFileName(language);
   parseCode(language, parser, fileName, mutationCode, true);
   const node = parseFullCode(language, parser, fileName, source, true);
-  const nodeQuery = new NodeQuery<T>(nql);
+  const nodeQuery = new NodeQuery<T>(nql, { adapter: parser });
   const matchingNodes = nodeQuery.queryNodes(node);
-  const nodeMutation = new NodeMutation<ts.Node>(source);
+  const nodeMutation = new NodeMutation<ts.Node>(source, { adapter: parser });
 
   matchingNodes.forEach((node) => {
     const newCode = mutationCode
@@ -122,13 +123,13 @@ export function mutateCode<T>(
   return nodeMutation.process();
 };
 
-function parseStartLocation<T>(node: T): Location {
-  const { line, column } = NodeMutation.getAdapter().getStartLoc(node);
+function parseStartLocation<T>(node: T, mutationAdapter: MutationAdapter<T>): Location {
+  const { line, column } = mutationAdapter.getStartLoc(node);
   return { line, column: column + 1 };
 };
 
-function parseEndLocation<T>(node: T): Location {
-  const { line, column } = NodeMutation.getAdapter().getEndLoc(node);
+function parseEndLocation<T>(node: T, mutationAdapter: MutationAdapter<T>): Location {
+  const { line, column } = mutationAdapter.getEndLoc(node);
   return { line, column: column + 1 };
 };
 
@@ -161,4 +162,17 @@ const formatSnippet = (language: string, parser: string, snippet: string): strin
       });
     });
   `;
+}
+
+function nodeMutationAdapter<T>(parser: string) {
+  switch (parser) {
+    case "typescript":
+      return new MutationTypescriptAdapter() as MutationAdapter<T>;
+    case "espree":
+      return new MutationEspreeAdapter() as MutationAdapter<T>;
+    case "gonzales-pe":
+      return new MutationGonzalesPeAdapter() as MutationAdapter<T>;
+    default:
+      throw new Error("Unknown node mutation parser");
+  }
 }

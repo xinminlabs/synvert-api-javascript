@@ -1,11 +1,14 @@
+import { Node } from "typescript";
 import { BuilderNode } from "../../../../lib/magic/builder";
 import DeleteConverter from "../../../../lib/magic/convert-pattern/delete-converter";
 import { parseJS } from "../../../test-helper";
 
 describe("DeleteConverter", () => {
-  describe("#call", () => {
-    describe("typescript", () => {
-      it("generates delete snippet for semincolon", () => {
+  describe("typescript", () => {
+    const parser = "typescript";
+
+    describe("#call", () => {
+      it("generates delete snippet for semicolon", () => {
         const code1 = `
           const someObject = {
             cat: cat,
@@ -21,7 +24,8 @@ describe("DeleteConverter", () => {
           }
         `;
         const builderNode = new BuilderNode();
-        const converter = new DeleteConverter(
+        const converter = new DeleteConverter<Node>(
+          parser,
           [parseJS(code1)["declarationList"]["declarations"][0]["initializer"]["properties"][0]],
           [parseJS(code2)["declarationList"]["declarations"][0]["initializer"]["properties"][0]],
           builderNode,

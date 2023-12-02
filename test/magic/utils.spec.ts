@@ -1,8 +1,12 @@
 import * as Utils from "../../lib/magic/utils";
 import { parseJS, parseCss, parseJsByEspree } from "../test-helper";
-import gonzales from "@xinminlabs/gonzales-pe";
+import { TypescriptAdapter, EspreeAdapter, GonzalesPeAdapter } from "@xinminlabs/node-query";
 
 describe("Utils", () => {
+  const queryTypescriptAdapter = new TypescriptAdapter();
+  const queryEspreeAdapter = new EspreeAdapter();
+  const queryGonzalesPeAdapter = new GonzalesPeAdapter();
+
   describe("isNode", () => {
     describe("typescript", () => {
       it("gets true if it is a node", () => {
@@ -66,13 +70,13 @@ describe("Utils", () => {
     it("gets true if all node types are same", () => {
       const node1 = parseJS("$.isArray(foo)")['expression'];
       const node2 = parseJS("$.isArray(bar)")['expression'];
-      expect(Utils.allNodeTypeEqual([node1, node2])).toBeTruthy();
+      expect(Utils.allNodeTypeEqual([node1, node2], queryTypescriptAdapter)).toBeTruthy();
     });
 
     it("gets false if not all node types are same", () => {
       const node1 = parseJS("$.isArray(foo)")['expression'];
       const node2 = parseJS("true")['expression'];
-      expect(Utils.allNodeTypeEqual([node1, node2])).toBeFalsy();
+      expect(Utils.allNodeTypeEqual([node1, node2], queryTypescriptAdapter)).toBeFalsy();
     });
   });
 
@@ -80,13 +84,13 @@ describe("Utils", () => {
     it("gets true if two nodes are equal", () => {
       const node1 = parseJS("$.isArray(foo)");
       const node2 = parseJS("$.isArray(foo)");
-      expect(Utils.nodesEqual(node1, node2)).toBeTruthy();
+      expect(Utils.nodesEqual(node1, node2, queryTypescriptAdapter)).toBeTruthy();
     });
 
     it("gets false if two nodes are not equal", () => {
       const node1 = parseJS("$.isArray(foo)");
       const node2 = parseJS("$.isArray(bar)");
-      expect(Utils.nodesEqual(node1, node2)).toBeFalsy();
+      expect(Utils.nodesEqual(node1, node2, queryTypescriptAdapter)).toBeFalsy();
     });
   });
 
@@ -94,21 +98,21 @@ describe("Utils", () => {
     describe("typescript", () => {
       it("gets child keys", () => {
         const node = parseJS("$.isArray(foo)")["expression"];
-        expect(Utils.getChildKeys(node)).toEqual(["expression", "typeArguments", "arguments"]);
+        expect(Utils.getChildKeys(node, queryTypescriptAdapter)).toEqual(["expression", "typeArguments", "arguments"]);
       });
     });
 
     describe("espree", () => {
       it("gets child keys", () => {
         const node = parseJsByEspree("$.isArray(foo)")["body"][0]["expression"];
-        expect(Utils.getChildKeys(node)).toEqual(["callee", "arguments"]);
+        expect(Utils.getChildKeys(node, queryEspreeAdapter)).toEqual(["callee", "arguments"]);
       });
     });
 
     describe("gonzales-pe", () => {
       it("gets child keys", () => {
-        const node = parseCss("a { color: red }")["content"][0] as gonzales.Node;
-        expect(Utils.getChildKeys(node)).toEqual(["selector", "space", "block"]);
+        const node = parseCss("a { color: red }")["content"][0];
+        expect(Utils.getChildKeys(node, queryGonzalesPeAdapter)).toEqual(["selector", "space", "block"]);
       });
     });
   });

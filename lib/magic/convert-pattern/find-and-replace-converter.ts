@@ -50,10 +50,10 @@ class FindAndReplaceConverter<T> extends BaseConverter<T> {
           return true;
         }
         if (isNode(inputChildNode) && isNode(outputChildNode)) {
-          if (nodesEqual(inputChildNode, outputChildNode)) {
+          if (nodesEqual(inputChildNode, outputChildNode, this.nodeQueryAdapter())) {
             return false;
           }
-          if (NodeQuery.getAdapter().getNodeType(inputChildNode) !== NodeQuery.getAdapter().getNodeType(outputChildNode)) {
+          if (this.nodeQueryAdapter().getNodeType(inputChildNode) !== this.nodeQueryAdapter().getNodeType(outputChildNode)) {
             this.addReplaceResult(replaceKey, outputChildNode);
             return true;
           }
@@ -61,8 +61,8 @@ class FindAndReplaceConverter<T> extends BaseConverter<T> {
         return this.replaceChildNode(inputChildNode, outputChildNode, replaceKey);
       });
       return allChildrenReplaced.every(replaced => replaced);
-    } else if (isNode(inputNode) && isNode(outputNode) && NodeQuery.getAdapter().getNodeType(inputNode) === NodeQuery.getAdapter().getNodeType(outputNode)) {
-      const allChildrenReplaced = getChildKeys(inputNode).map(childKey => {
+    } else if (isNode(inputNode) && isNode(outputNode) && this.nodeQueryAdapter().getNodeType(inputNode) === this.nodeQueryAdapter().getNodeType(outputNode)) {
+      const allChildrenReplaced = getChildKeys(inputNode, this.nodeQueryAdapter()).map(childKey => {
         const inputChildNode = inputNode[childKey];
         const outputChildNode = outputNode[childKey];
         const replaceKey = key ? `${key}.${childKey}` : childKey;
@@ -87,10 +87,10 @@ class FindAndReplaceConverter<T> extends BaseConverter<T> {
           return true;
         }
         if (isNode(inputChildNode) && isNode(outputChildNode)) {
-          if (nodesEqual(inputChildNode, outputChildNode)) {
+          if (nodesEqual(inputChildNode as T, outputChildNode as T, this.nodeQueryAdapter())) {
             return false;
           }
-          if (NodeQuery.getAdapter().getNodeType(inputChildNode) !== NodeQuery.getAdapter().getNodeType(outputChildNode)) {
+          if (this.nodeQueryAdapter().getNodeType(inputChildNode as T) !== this.nodeQueryAdapter().getNodeType(outputChildNode as T)) {
             this.addReplaceResult(replaceKey, outputChildNode as T);
             return true;
           }
@@ -139,7 +139,7 @@ class FindAndReplaceConverter<T> extends BaseConverter<T> {
   private addReplaceResult(key: string, outputChildNode: T[] | T | string) {
     if (Array.isArray(outputChildNode)) {
       const newCode = outputChildNode.map((childNode) => {
-        const replacedNode = this.replaceNode(clone(childNode), this.inputNodes[0], getNodeRange(childNode).start);
+        const replacedNode = this.replaceNode(clone(childNode), this.inputNodes[0], getNodeRange(childNode, this.nodeMutationAdapter()).start);
         return this.generateSourceCode(replacedNode);
       }).join(", ")
       if (key === "members" && newCode === "") {
@@ -149,7 +149,7 @@ class FindAndReplaceConverter<T> extends BaseConverter<T> {
     } else if (typeof outputChildNode === "string") {
       this.replaceResults.push({ key, newCode: outputChildNode });
     } else {
-      const replacedNode = this.replaceNode(clone(outputChildNode), this.inputNodes[0], getNodeRange(outputChildNode).start);
+      const replacedNode = this.replaceNode(clone(outputChildNode), this.inputNodes[0], getNodeRange(outputChildNode, this.nodeMutationAdapter()).start);
       const newCode = this.generateSourceCode(replacedNode);
       this.replaceResults.push({ key, newCode });
     }

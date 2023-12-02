@@ -1,13 +1,14 @@
 import path from "path";
 import { KEYS as EspreeKeys } from "eslint-visitor-keys";
 import { KEYS as TypescriptKeys } from "typescript-visitor-keys";
-import NodeQuery, { EspreeAdapter as QueryEspreeAdapter, TypescriptAdapter as QueryTypescriptAdapter, GonzalesPeAdapter as QueryGonzalesPeAdapter } from "@xinminlabs/node-query";
-import NodeMutation, { EspreeAdapter as MutationEspreeAdapter, TypescriptAdapter as MutationTypescriptAdapter, GonzalesPeAdapter as MutationGonzalesPeAdapter } from "@xinminlabs/node-mutation";
+import NodeQuery, { Adapter as QueryAdapter } from "@xinminlabs/node-query";
+import NodeMutation, { Adapter as MutationAdapter } from "@xinminlabs/node-mutation";
 import { createProgram, createSourceFile, Node as TypescriptNode, ScriptKind, ScriptTarget } from "typescript";
 import { KeyNotFoundError } from "./error";
 import * as espree from "@xinminlabs/espree";
 import gonzales, { Node as GonzalesNode } from "@xinminlabs/gonzales-pe";
 import { Node as EspreeNode } from "acorn";
+import { query } from "express";
 
 export const getFileExtension = (language: string): string => {
   switch (language) {
@@ -33,24 +34,18 @@ export const getFileName = (language: string): string => {
   return `code.${extension}`;
 }
 
-export function getNodeRange<T>(node: T): { start :number, end: number } {
-  return { start: NodeMutation.getAdapter().getStart(node), end: NodeMutation.getAdapter().getEnd(node) };
+export function getNodeRange<T>(node: T, mutationAdapter: MutationAdapter<T>): { start :number, end: number } {
+  return { start: mutationAdapter.getStart(node), end: mutationAdapter.getEnd(node) };
 }
 
 export const parseFullCode = (language: string, parser: string, fileName: string, code: string, parent = true) => {
   switch (parser) {
     case "espree":
-      NodeQuery.configure({ adapter: new QueryEspreeAdapter() });
-      NodeMutation.configure({ adapter: new MutationEspreeAdapter() });
       return parseCodeByEspree(code, fileName)["body"][0];
     case "typescript":
-      NodeQuery.configure({ adapter: new QueryTypescriptAdapter() });
-      NodeMutation.configure({ adapter: new MutationTypescriptAdapter() });
       const scriptKind = getScriptKind(language);
       return parseCodeByTypescript(code, fileName, scriptKind, parent)["statements"][0];
     case "gonzales-pe":
-      NodeQuery.configure({ adapter: new QueryGonzalesPeAdapter() });
-      NodeMutation.configure({ adapter: new MutationGonzalesPeAdapter() });
       return parseCodeByGonzalesPe(code, fileName);
   }
 }
@@ -98,42 +93,42 @@ export const allEqual = (values: any[]): boolean => values.every(value => value 
 
 export const allUndefined = (values: any[]): boolean => values.every(value => typeof value === "undefined");
 
-export function allNodeTypeEqual<T>(nodes: T[]): boolean {
-  return nodes.every(node => isNode(node) && getNodeType(node) === getNodeType(nodes[0]));
+export function allNodeTypeEqual<T>(nodes: T[], queryAdapter: QueryAdapter<T>): boolean {
+  return nodes.every(node => isNode(node) && getNodeType(node, queryAdapter) === getNodeType(nodes[0], queryAdapter));
 }
 
-export function allNodesEqual<T>(nodes: T[]): boolean {
-  return nodes.every(node => nodesEqual(node, nodes[0]));
+export function allNodesEqual<T>(nodes: T[], queryAdapter: QueryAdapter<T>): boolean {
+  return nodes.every(node => nodesEqual(node, nodes[0], queryAdapter));
 }
 
 export function nodeIsNull<T>(node: T): boolean {
   return (typeof node === "undefined") || (Array.isArray(node["body"]) && node["body"].length === 0);
 }
 
-export function nodesEqual<T>(node1: T, node2: T): boolean {
+export function nodesEqual<T>(node1: T, node2: T, queryAdapter: QueryAdapter<T>): boolean {
   if (!isNode(node1)) {
     return false;
   }
   if (!isNode(node2)) {
     return false;
   }
-  return getNodeType(node1) == getNodeType(node2) && getNodeSource(node1) == getNodeSource(node2);
+  return getNodeType(node1, queryAdapter) == getNodeType(node2, queryAdapter) && getNodeSource(node1, queryAdapter) == getNodeSource(node2, queryAdapter);
 }
 
 export const ignoredAttribute = (key: string, value: any): boolean => {
   return ["typeArguments", "exclamationToken"].includes(key) && value === undefined;
 }
 
-export function getNodeType<T>(node: T): string {
-  return NodeQuery.getAdapter().getNodeType(node);
+export function getNodeType<T>(node: T, queryAdapter: QueryAdapter<T>): string {
+  return queryAdapter.getNodeType(node);
 }
 
-export function getNodeSource<T>(node: T): string {
-  return NodeQuery.getAdapter().getSource(node);
+export function getNodeSource<T>(node: T, queryAdapter: QueryAdapter<T>): string {
+  return queryAdapter.getSource(node);
 }
 
-export function getChildKeys<T>(node: T): string[] {
-  const nodeType = NodeQuery.getAdapter().getNodeType(node)
+export function getChildKeys<T>(node: T, queryAdapter: QueryAdapter<T>): string[] {
+  const nodeType = queryAdapter.getNodeType(node)
   let childKeys;
   if (isTypescriptNode(node)) {
     childKeys = TypescriptKeys[nodeType];
@@ -160,16 +155,16 @@ export const escapeString = (str: string): string => {
   return `"${str}"`;
 }
 
-const valuesEqual = (value1: any, value2: any): boolean => {
+function valuesEqual<T>(value1: any, value2: any, queryAdapter: QueryAdapter<T>): boolean {
   if (Array.isArray(value1) && Array.isArray(value2)) {
     if (value1.length !== value2.length) {
       return false;
     }
     return value1.every((v1, index) => {
-      return valuesEqual(v1, value2[index]);
+      return valuesEqual(v1, value2[index], queryAdapter);
     })
   } else if (isNode(value1) && isNode(value2)) {
-    return nodesEqual(value1, value2);
+    return nodesEqual(value1 as T, value2 as T, queryAdapter);
   } else {
     return value1 === value2;
   }

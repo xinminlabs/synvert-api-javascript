@@ -14,7 +14,7 @@ class FindAndReplaceWithConverter<T> extends BaseConverter<T> {
       return;
     }
 
-    const replacedNode = this.replaceNode(clone(firstOutputNode), firstInputNode, getNodeRange(firstOutputNode).start);
+    const replacedNode = this.replaceNode(clone(firstOutputNode), firstInputNode, getNodeRange(firstOutputNode, this.nodeMutationAdapter()).start);
     const newStr = this.generateSourceCode(replacedNode);
     this.builderNode.addConvertPattern(`replaceWith(${escapeString(newStr)});`);
   }

@@ -1,10 +1,13 @@
+import { Node } from "typescript";
 import { BuilderNode } from "../../../../lib/magic/builder";
 import FindAndDeleteConverter from "../../../../lib/magic/convert-pattern/find-and-delete-converter";
 import { parseJS } from "../../../test-helper";
 
 describe("FindAndDeleteConverter", () => {
-  describe("#call", () => {
-    describe("typescript", () => {
+  describe("typescript", () => {
+    const parser = "typescript";
+
+    describe("#call", () => {
       it("generates delete snippet for property", () => {
         const builderNode = new BuilderNode();
         const source1 = `
@@ -22,7 +25,8 @@ describe("FindAndDeleteConverter", () => {
             snippet,
           });
         `;
-        const converter = new FindAndDeleteConverter(
+        const converter = new FindAndDeleteConverter<Node>(
+          parser,
           [parseJS(source1)['expression']],
           [parseJS(source2)['expression']],
           builderNode
@@ -37,7 +41,8 @@ describe("FindAndDeleteConverter", () => {
 
       it("generates delete snippet for attribute", () => {
         const builderNode = new BuilderNode();
-        const converter = new FindAndDeleteConverter(
+        const converter = new FindAndDeleteConverter<Node>(
+          parser,
           [parseJS(`<Field name="email" type="email" autoComplete="email" />`)['expression']],
           [parseJS(`<Field name="email" type="email" />`)['expression']],
           builderNode

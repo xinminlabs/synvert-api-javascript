@@ -23,8 +23,8 @@ class FindAndDeleteConverter<T> extends BaseConverter<T> {
       return false;
     }
 
-    const childKeys = getChildKeys(inputNode);
-    const childKey = childKeys.find((key) => nodesEqual(inputNode[key], outputNode));
+    const childKeys = getChildKeys(inputNode, this.nodeQueryAdapter());
+    const childKey = childKeys.find((key) => nodesEqual(inputNode[key], outputNode, this.nodeQueryAdapter()));
     if (!childKey) {
       return false;
     }

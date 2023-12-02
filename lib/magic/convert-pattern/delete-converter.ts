@@ -5,7 +5,7 @@ class DeleteConverter<T> extends BaseConverter<T> {
   call() {
     const firstInputNode = this.inputNodes[0];
 
-    const deleteKeys = getChildKeys(firstInputNode).filter(name => {
+    const deleteKeys = getChildKeys(firstInputNode, this.nodeQueryAdapter()).filter(name => {
       return this.name !== name && !!firstInputNode[name];
     });
 

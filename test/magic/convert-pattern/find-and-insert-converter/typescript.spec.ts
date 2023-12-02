@@ -1,10 +1,13 @@
+import { Node } from "typescript";
 import { BuilderNode } from "../../../../lib/magic/builder";
 import FindAndInsertConverter from "../../../../lib/magic/convert-pattern/find-and-insert-converter";
 import { parseJS } from "../../../test-helper";
 
 describe("InsertConverter", () => {
-  describe("#call", () => {
-    describe("typescript", () => {
+  describe("typescript", () => {
+    const parser = "typescript";
+
+    describe("#call", () => {
       it("generates insert snippet for attribute property", () => {
         const builderNode = new BuilderNode();
         const source1 = `
@@ -22,7 +25,8 @@ describe("InsertConverter", () => {
             helpers: ["helpers/remove-imports"],
           });
         `;
-        const converter = new FindAndInsertConverter(
+        const converter = new FindAndInsertConverter<Node>(
+          parser,
           [parseJS(source1)['expression']],
           [parseJS(source2)['expression']],
           builderNode
@@ -34,7 +38,8 @@ describe("InsertConverter", () => {
 
       it("generates insert snippet for attribute property", () => {
         const builderNode = new BuilderNode();
-        const converter = new FindAndInsertConverter(
+        const converter = new FindAndInsertConverter<Node>(
+          parser,
           [parseJS(`<Field name="email" type="email" />`)['expression']],
           [parseJS(`<Field name="email" type="email" autoComplete="email" />`)['expression']],
           builderNode

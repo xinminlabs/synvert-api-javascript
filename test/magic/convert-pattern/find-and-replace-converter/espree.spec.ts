@@ -1,11 +1,14 @@
+import { Node } from "acorn";
 import mock from "mock-fs";
 import { BuilderNode } from "../../../../lib/magic/builder";
 import FindAndReplaceConverter from "../../../../lib/magic/convert-pattern/find-and-replace-converter";
 import { parseJsByEspree } from "../../../test-helper";
 
 describe("FindAndReplaceConverter", () => {
-  describe("#call", () => {
-    describe("espree", () => {
+  describe("espree", () => {
+    const parser = "espree";
+
+    describe("#call", () => {
       it("generates replace snippet", () => {
         const inputFile1 = "input1.js";
         const inputSource1 = "$.isArray(foo)";
@@ -26,7 +29,7 @@ describe("FindAndReplaceConverter", () => {
             parseJsByEspree(outputSource2, outputFile2)["body"][0]["expression"],
           ];
           const builderNode = new BuilderNode();
-          const converter = new FindAndReplaceConverter(inputNodes, outputNodes, builderNode);
+          const converter = new FindAndReplaceConverter<Node>(parser, inputNodes, outputNodes, builderNode);
           converter.call();
           expect(builderNode["children"].length).toEqual(1);
           expect(builderNode["children"][0].generateSnippet()).toEqual(`replace("callee.object", { with: "Array" });`);
@@ -55,7 +58,7 @@ describe("FindAndReplaceConverter", () => {
             parseJsByEspree(outputSource2, outputFile2)["body"][0]["expression"],
           ];
           const builderNode = new BuilderNode();
-          const converter = new FindAndReplaceConverter(inputNodes, outputNodes, builderNode);
+          const converter = new FindAndReplaceConverter<Node>(parser, inputNodes, outputNodes, builderNode);
           converter.call();
           expect(builderNode["children"].length).toEqual(2);
           expect(builderNode["children"][0].generateSnippet()).toEqual(`replace("closingElement", { with: "</Container>" });`);
@@ -85,7 +88,7 @@ describe("FindAndReplaceConverter", () => {
             parseJsByEspree(outputSource2, outputFile2)["body"][0]["expression"],
           ];
           const builderNode = new BuilderNode();
-          const converter = new FindAndReplaceConverter(inputNodes, outputNodes, builderNode);
+          const converter = new FindAndReplaceConverter<Node>(parser, inputNodes, outputNodes, builderNode);
           converter.call();
           expect(builderNode["children"].length).toEqual(2);
           expect(builderNode["children"][1].generateSnippet()).toEqual(`replace("callee.property", { with: "slice" });`);

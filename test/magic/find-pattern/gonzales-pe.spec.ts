@@ -1,13 +1,15 @@
 import mock from "mock-fs";
 import dedent from "dedent";
-import gonzales from "@xinminlabs/gonzales-pe";
+import gonzales, { Node } from "@xinminlabs/gonzales-pe";
 import FindPattern from "../../../lib/magic/find-pattern";
 import { NqlOrRules } from "../../../lib/magic/types";
 import { parseCss } from "../../test-helper";
 
 describe("FindPattern", () => {
-  describe("#call", () => {
-    describe("gonzales-pe", () => {
+  describe("gonzales-pe", () => {
+    const parser = "gonzales-pe";
+
+    describe("#call", () => {
       it("finds pattern", () => {
         const inputFile1 = "input1.css";
         const inputSource1 = "a { color: red }";
@@ -20,7 +22,7 @@ describe("FindPattern", () => {
             parseCss(inputSource2, inputFile2)['content'][0] as gonzales.Node,
           ];
           const outputNodes = [];
-          const findPattern = new FindPattern(inputNodes, outputNodes, NqlOrRules.rules, () => {});
+          const findPattern = new FindPattern<Node>(parser, inputNodes, outputNodes, NqlOrRules.rules, () => {});
           const expected = dedent`
             withNode({ nodeType: "ruleset", selector: { nodeType: "selector", typeSelector: { nodeType: "typeSelector", ident: { nodeType: "ident" } } }, space: { nodeType: "space" }, block: { nodeType: "block", space: { nodeType: "space" }, declaration: { nodeType: "declaration", property: { nodeType: "property", ident: { nodeType: "ident" } }, propertyDelimiter: { nodeType: "propertyDelimiter" }, space: { nodeType: "space" }, value: { nodeType: "value", ident: { nodeType: "ident" } } } } }, () => {
             });
@@ -43,7 +45,7 @@ describe("FindPattern", () => {
             parseCss(inputSource2, inputFile2)['content'][0] as gonzales.Node,
           ];
           const outputNodes = [];
-          const findPattern = new FindPattern(inputNodes, outputNodes, NqlOrRules.nql, () => {});
+          const findPattern = new FindPattern<Node>(parser, inputNodes, outputNodes, NqlOrRules.nql, () => {});
           const expected = dedent`
             findNode(\`.ruleset[selector=.selector[typeSelector=.typeSelector[ident=.ident]]][space=.space][block=.block[space=.space][declaration=.declaration[property=.property[ident=.ident]][propertyDelimiter=.propertyDelimiter][space=.space][value=.value[ident=.ident]]]]\`, () => {
             });

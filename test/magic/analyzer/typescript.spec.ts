@@ -1,17 +1,10 @@
 import dedent from "dedent";
-import NodeQuery, { TypescriptAdapter as QueryTypescriptAdapter } from "@xinminlabs/node-query";
-import NodeMutation, { TypescriptAdapter as MutationTypescriptAdapter } from "@xinminlabs/node-mutation";
 import Analyzer from "../../../lib/magic/analyzer";
 import { NqlOrRules } from "../../../lib/magic/types";
 
 describe("Analyzer", () => {
   describe("#call", () => {
     describe("typescript", () => {
-      beforeEach(() => {
-        NodeQuery.configure({ adapter: new QueryTypescriptAdapter() });
-        NodeMutation.configure({ adapter: new MutationTypescriptAdapter() });
-      })
-
       describe("ts", () => {
         it("gets pattern", () => {
           const inputs = ["$.isArray(foo)", "$.isArray(bar)"];

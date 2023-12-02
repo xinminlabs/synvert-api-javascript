@@ -1,7 +1,3 @@
-import { Node as TypescriptNode } from "typescript";
-import { Node as EspreeNode } from "acorn";
-import { Node as GonzalesNode} from "@xinminlabs/gonzales-pe";
-
 export type Location = {
   line: number;
   column: number;

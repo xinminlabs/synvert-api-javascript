@@ -1,10 +1,12 @@
+import { Adapter as QueryAdapter } from "@xinminlabs/node-query";
+import { Adapter as MutationAdapter } from "@xinminlabs/node-mutation";
 import BaseConverter from "./base-converter";
 import { BuilderNode } from "../builder";
 import { escapeString, getChildKeys, isNode, nodeIsNull, nodesEqual, getNodeSource, getNodeRange } from "../utils";
 
 class FindAndInsertConverter<T> extends BaseConverter<T> {
-  constructor(protected inputNodes: T[], protected outputNodes: T[], protected builderNode: BuilderNode) {
-    super(inputNodes, outputNodes, builderNode);
+  constructor(protected parser: string, protected inputNodes: T[], protected outputNodes: T[], protected builderNode: BuilderNode) {
+    super(parser, inputNodes, outputNodes, builderNode);
     this.insertResults = [];
   }
 
@@ -32,7 +34,7 @@ class FindAndInsertConverter<T> extends BaseConverter<T> {
       return false;
     }
 
-    this.builderNode.addConvertPattern(`insert(${escapeString(getNodeSource(this.outputNodes[0]))}, { at: "beginning" });`);
+    this.builderNode.addConvertPattern(`insert(${escapeString(getNodeSource(this.outputNodes[0], this.nodeQueryAdapter()))}, { at: "beginning" });`);
     return true;
   }
 
@@ -43,14 +45,14 @@ class FindAndInsertConverter<T> extends BaseConverter<T> {
       return false;
     }
 
-    const childKey = getChildKeys(outputNode).find(key => nodesEqual(outputNode[key], inputNode));
+    const childKey = getChildKeys(outputNode, this.nodeQueryAdapter()).find(key => nodesEqual(outputNode[key], inputNode, this.nodeQueryAdapter()));
     if (!childKey) {
       return false;
     }
 
-    const outputNodeRange = getNodeRange(outputNode);
-    const outputChildNodeRange = getNodeRange(outputNode[childKey]);
-    const outputNodeSource = getNodeSource(outputNode);
+    const outputNodeRange = getNodeRange(outputNode, this.nodeMutationAdapter());
+    const outputChildNodeRange = getNodeRange(outputNode[childKey], this.nodeMutationAdapter());
+    const outputNodeSource = getNodeSource(outputNode, this.nodeQueryAdapter());
     if (outputChildNodeRange.start - outputNodeRange.start > 0) {
       this.buildInsertPattern([{
         newCode: outputNodeSource.substring(0, outputChildNodeRange.start - outputNodeRange.start),

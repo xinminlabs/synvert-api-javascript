@@ -1,11 +1,14 @@
+import { Node } from "@xinminlabs/gonzales-pe";
 import mock from "mock-fs";
 import { BuilderNode } from "../../../../lib/magic/builder";
 import FindAndReplaceWithConverter from "../../../../lib/magic/convert-pattern/find-and-replace-with-converter";
 import { parseCss } from "../../../test-helper";
 
 describe("FindAndReplaceWithConverter", () => {
-  describe("#call", () => {
-    describe("gonzales-pe", () => {
+  describe("gonzales-pe", () => {
+    const parser = "gonzales-pe";
+
+    describe("#call", () => {
       it("generates replaceWith snippet", () => {
         const inputFile = "input1.css";
         const inputSource = "a { color: red }";
@@ -16,7 +19,7 @@ describe("FindAndReplaceWithConverter", () => {
           const inputNodes = [parseCss(inputSource, inputFile)];
           const outputNodes = [parseCss(outputSource, outputFile)];
           const builderNode = new BuilderNode();
-          const converter = new FindAndReplaceWithConverter(inputNodes, outputNodes, builderNode);
+          const converter = new FindAndReplaceWithConverter<Node>(parser, inputNodes, outputNodes, builderNode);
           converter.call();
           expect(builderNode["children"].length).toEqual(1);
           expect(builderNode["children"][0].generateSnippet()).toEqual(`replaceWith("a { color: blue }");`);

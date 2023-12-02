@@ -1,5 +1,5 @@
-import NodeQuery from "@xinminlabs/node-query";
-import NodeMutation from "@xinminlabs/node-mutation";
+import { Adapter as QueryAdapter, TypescriptAdapter as QueryTypescriptAdapter, EspreeAdapter as QueryEspreeAdapter, GonzalesPeAdapter as QueryGonzalesPeAdapter } from "@xinminlabs/node-query";
+import { Adapter as MutationAdapter, TypescriptAdapter as MutationTypescriptAdapter, EspreeAdapter as MutationEspreeAdapter, GonzalesPeAdapter as MutationGonzalesPeAdapter } from "@xinminlabs/node-mutation";
 import { BuilderNode } from "../builder";
 import  FakeNode from "../fake-node";
 import { nodesEqual, isNode, getNodeRange, getChildKeys, getNodeSource, escapeString, getNodeType } from "../utils";
@@ -24,22 +24,22 @@ class BaseConverter<T> {
   protected deleteResults: (string | string[])[] = [];
   protected replaceResults: ReplaceResult[] = [];
 
-  constructor(protected inputNodes: T[], protected outputNodes: T[], protected builderNode: BuilderNode, protected name?: string) {}
+  constructor(protected parser: string, protected inputNodes: T[], protected outputNodes: T[], protected builderNode: BuilderNode, protected name?: string) {}
 
   private addInsertResult({ parentNode, outputChildNode, key, at }: { parentNode: T, outputChildNode: T, key: string, at: "beginning" | "end" }) {
     const parentKeys = key.split(".");
     const lastKey = parentKeys.pop();
-    const index = getChildKeys(parentNode).indexOf(lastKey);
+    const index = getChildKeys(parentNode, this.nodeQueryAdapter()).indexOf(lastKey);
     let newKey = lastKey;
     if (at === "beginning") {
-      getChildKeys(parentNode).slice(index).forEach(childKey => {
+      getChildKeys(parentNode, this.nodeQueryAdapter()).slice(index).forEach(childKey => {
         if (parentNode[childKey]) {
           newKey = childKey;
           return;
         }
       });
     } else {
-      getChildKeys(parentNode).slice(0, index).reverse().forEach(childKey => {
+      getChildKeys(parentNode, this.nodeQueryAdapter()).slice(0, index).reverse().forEach(childKey => {
         if (parentNode[childKey]) {
           newKey = childKey;
           return;
@@ -51,12 +51,13 @@ class BaseConverter<T> {
   }
 
   private addRawInsertResult({ to, at, newNode }: { to: string, at: "beginning" | "end", newNode: T }) {
-    this.insertResults.push({ to, at, newCode: getNodeSource(newNode) });
+    this.insertResults.push({ to, at, newCode: getNodeSource(newNode, this.nodeQueryAdapter()) });
   }
 
   private addDeleteResult(node: T, key: string) {
-    if (Object.keys(PROPERTY_NAMES).includes(getNodeType(node))) {
-      const propertyKey = key.split(".").slice(0, -2).join(".") + `.${getNodeSource((node as any)[PROPERTY_KEY_NAMES[getNodeType(node)]])}${PROPERTY_NAMES[getNodeType(node)]}`;
+    const nodeType = getNodeType(node, this.nodeQueryAdapter());
+    if (Object.keys(PROPERTY_NAMES).includes(nodeType)) {
+      const propertyKey = key.split(".").slice(0, -2).join(".") + `.${getNodeSource((node as any)[PROPERTY_KEY_NAMES[nodeType]], this.nodeQueryAdapter())}${PROPERTY_NAMES[nodeType]}`;
       if (this.deleteResults.length === 0) {
         this.deleteResults.push([propertyKey]);
         this.deleteResults.push([key]);
@@ -109,7 +110,7 @@ class BaseConverter<T> {
           break;
         }
 
-        if (outputNodes[outputIndex] && inputNodes[inputIndex] && nodesEqual(outputNodes[outputIndex], inputNodes[inputIndex])) {
+        if (outputNodes[outputIndex] && inputNodes[inputIndex] && nodesEqual(outputNodes[outputIndex], inputNodes[inputIndex], this.nodeQueryAdapter())) {
           outputIndex++;
           inputIndex++;
           continue;
@@ -138,7 +139,7 @@ class BaseConverter<T> {
           break;
         }
 
-        if (inputNodes[inputIndex] && outputNodes[outputIndex] && nodesEqual(inputNodes[inputIndex], outputNodes[outputIndex])) {
+        if (inputNodes[inputIndex] && outputNodes[outputIndex] && nodesEqual(inputNodes[inputIndex], outputNodes[outputIndex], this.nodeQueryAdapter())) {
           inputIndex++;
           outputIndex++;
           continue;
@@ -158,9 +159,9 @@ class BaseConverter<T> {
 
     if (isNode(inputNode) && isNode(outputNode)) {
       // FIXME: iterate hash
-      if (NodeQuery.getAdapter().getNodeType(inputNode) === NodeQuery.getAdapter().getNodeType(outputNode)) {
-        getChildKeys(inputNode).forEach(childKey => {
-          if (nodesEqual(inputNode[childKey], outputNode[childKey])) {
+      if (this.nodeQueryAdapter().getNodeType(inputNode) === this.nodeQueryAdapter().getNodeType(outputNode)) {
+        getChildKeys(inputNode, this.nodeQueryAdapter()).forEach(childKey => {
+          if (nodesEqual(inputNode[childKey], outputNode[childKey], this.nodeQueryAdapter())) {
             return;
           }
 
@@ -210,7 +211,7 @@ class BaseConverter<T> {
         }
       });
     } else if (isNode(inputNode)) {
-      getChildKeys(inputNode).forEach(childKey => {
+      getChildKeys(inputNode, this.nodeQueryAdapter()).forEach(childKey => {
         if (!(replacedNode instanceof FakeNode) && inputNode[childKey]) {
           const replaceKey = key ? `${key}.${childKey}` : childKey;
           let [found, result] = this.findAndReplaceWith(replacedNode, inputNode[childKey], startPosition, replaceKey);
@@ -238,8 +239,8 @@ class BaseConverter<T> {
    */
   protected findAndReplaceWith(node: T, targetNode: T, startPosition: number, fakeNodeName: string): [boolean, FakeNode | T | null] {
     const fakeNode = new FakeNode(fakeNodeName);
-    if (nodesEqual(node, targetNode)) {
-      const range = getNodeRange(targetNode);
+    if (nodesEqual(node, targetNode, this.nodeQueryAdapter())) {
+      const range = getNodeRange(targetNode, this.nodeMutationAdapter());
       fakeNode.range = { start: range.start - startPosition, end: range.end - startPosition };
       return [true, fakeNode];
     }
@@ -263,7 +264,7 @@ class BaseConverter<T> {
   protected findNames(node: T | T[], targetNode: T): string[] {
     if (Array.isArray(node)) {
       for (let index = 0; index < node.length; index++) {
-        if (nodesEqual(node[index], targetNode)) {
+        if (nodesEqual(node[index], targetNode, this.nodeQueryAdapter())) {
           return [String(index)];
         }
         const childNames = this.findNames(node[index], targetNode);
@@ -278,8 +279,8 @@ class BaseConverter<T> {
       return [];
     }
 
-    for (let key of getChildKeys(node)) {
-      if (nodesEqual(node[key], targetNode)) {
+    for (let key of getChildKeys(node, this.nodeQueryAdapter())) {
+      if (nodesEqual(node[key], targetNode, this.nodeQueryAdapter())) {
         return [key];
       }
 
@@ -302,7 +303,7 @@ class BaseConverter<T> {
   protected deepUpdated(node: T, names: string[], fakeNode: FakeNode, startPosition: number): T {
     const name = names.shift();
     if (names.length == 0) {
-      const range = getNodeRange(node[name]);
+      const range = getNodeRange(node[name], this.nodeMutationAdapter());
       fakeNode.range = { start: range.start - startPosition, end: range.end - startPosition };
       node[name] = fakeNode;
     } else {
@@ -321,7 +322,7 @@ class BaseConverter<T> {
       return node.toString();
     }
 
-    let sourceCode = getNodeSource(node);
+    let sourceCode = getNodeSource(node, this.nodeQueryAdapter());
     this.getAllFakeNodes(node).reverse().forEach(fakeNode => {
       sourceCode = sourceCode.substring(0, fakeNode.range.start) + fakeNode.toString() + sourceCode.substring(fakeNode.range.end);
     });
@@ -338,7 +339,7 @@ class BaseConverter<T> {
     if (node instanceof FakeNode) {
       fakeNodes.push(node);
     } else {
-      NodeQuery.getAdapter().getChildren(node).forEach(childNode => {
+      this.nodeQueryAdapter().getChildren(node).forEach(childNode => {
         fakeNodes.push(...this.getAllFakeNodes(childNode));
       });
     }
@@ -384,16 +385,16 @@ class BaseConverter<T> {
   private buildSingleKeyDeletePattern(node: T, key: string, builderNode: BuilderNode) {
     let nodeType;
     if (key.includes(".")) {
-      nodeType = getNodeType(NodeMutation.getAdapter().childNodeValue(node, this.getParentKey(key)));
+      nodeType = getNodeType(this.nodeMutationAdapter().childNodeValue(node, this.getParentKey(key)), this.nodeQueryAdapter());
     } else {
-      nodeType = getNodeType(node);
+      nodeType = getNodeType(node, this.nodeQueryAdapter());
     }
     if (nodeType === "PropertyAssignment" && key === "initializer") {
       builderNode.addConvertPattern('delete(["semicolon", "initializer"]);');
     } else if (nodeType === "Property" && key === "value") {
       builderNode.addConvertPattern('delete(["semicolon", "value"]);');
     } else {
-      const jsx = NodeQuery.getAdapter().getNodeType(node).toLowerCase().startsWith("jsx");
+      const jsx = this.nodeQueryAdapter().getNodeType(node).toLowerCase().startsWith("jsx");
       const andComma = !jsx && /((-?\d)|(Property)|(Initializer)|(Value))$/.test(
         key.split(".").at(-1)
       );
@@ -406,7 +407,7 @@ class BaseConverter<T> {
 
   private buildMultipleKeysDeletePattern(node: T, keys: string[], builderNode: BuilderNode) {
     if (this.keysHaveCommonParentKey(keys)) {
-      const jsx = NodeQuery.getAdapter().getNodeType(node).toLowerCase().startsWith("jsx");
+      const jsx = this.nodeQueryAdapter().getNodeType(node).toLowerCase().startsWith("jsx");
       const andComma = !jsx && /((-?\d)|(Property))$/.test(
         keys.at(-1).split(".").at(-1)
       );
@@ -455,8 +456,8 @@ class BaseConverter<T> {
       return;
     }
 
-    const jsx = NodeQuery.getAdapter().getNodeType(this.inputNodes[0]).toLowerCase().startsWith("jsx");
-    const newline = NodeMutation.getAdapter().getEndLoc(this.inputNodes[0]).line !== NodeMutation.getAdapter().getEndLoc(this.outputNodes[0]).line;
+    const jsx = this.nodeQueryAdapter().getNodeType(this.inputNodes[0]).toLowerCase().startsWith("jsx");
+    const newline = this.nodeMutationAdapter().getEndLoc(this.inputNodes[0]).line !== this.nodeMutationAdapter().getEndLoc(this.outputNodes[0]).line;
     this.combineInsertResults(insertResults).forEach(result => {
       const to = result["to"];
       const lastKey = to.split(".").pop();
@@ -495,6 +496,32 @@ class BaseConverter<T> {
       }
       return newResults;
     }, []);
+  }
+
+  protected nodeQueryAdapter() {
+    switch (this.parser) {
+      case "typescript":
+        return new QueryTypescriptAdapter() as QueryAdapter<T>;
+      case "espree":
+        return new QueryEspreeAdapter() as QueryAdapter<T>;
+      case "gonzales-pe":
+        return new QueryGonzalesPeAdapter() as QueryAdapter<T>;
+      default:
+        throw new Error("Unknown node query parser");
+    }
+  }
+
+  protected nodeMutationAdapter() {
+    switch (this.parser) {
+      case "typescript":
+        return new MutationTypescriptAdapter() as MutationAdapter<T>;
+      case "espree":
+        return new MutationEspreeAdapter() as MutationAdapter<T>;
+      case "gonzales-pe":
+        return new MutationGonzalesPeAdapter() as MutationAdapter<T>;
+      default:
+        throw new Error("Unknown node mutation parser");
+    }
   }
 }
 
