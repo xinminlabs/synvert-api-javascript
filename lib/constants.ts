@@ -1,5 +1,13 @@
 export const JAVASCRIPT_VERSIONS = "javascript-versions";
 export const JAVASCRIPT_SNIPPETS = "javascript-snippets";
 export const TYPESCRIPT_SNIPPETS = "typescript-snippets";
+export const CSS_SNIPPETS = "css-snippets";
+export const LESS_SNIPPETS = "less-snippets";
+export const SASS_SNIPPETS = "sass-snippets";
+export const SCSS_SNIPPETS = "scss-snippets";
 export const JAVASCRIPT_SNIPPETS_ETAG = "javascript-snippets-etag";
 export const TYPESCRIPT_SNIPPETS_ETAG = "typescript-snippets-etag";
+export const CSS_SNIPPETS_ETAG = "css-snippets-etag";
+export const LESS_SNIPPETS_ETAG = "less-snippets-etag";
+export const SASS_SNIPPETS_ETAG = "sass-snippets-etag";
+export const SCSS_SNIPPETS_ETAG = "scss-snippets-etag";
