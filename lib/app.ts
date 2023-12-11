@@ -3,7 +3,21 @@ import Rollbar from 'rollbar';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import morgan from 'morgan';
-import { JAVASCRIPT_VERSIONS, JAVASCRIPT_SNIPPETS, TYPESCRIPT_SNIPPETS, JAVASCRIPT_SNIPPETS_ETAG, TYPESCRIPT_SNIPPETS_ETAG } from './constants';
+import {
+  JAVASCRIPT_VERSIONS,
+  JAVASCRIPT_SNIPPETS,
+  TYPESCRIPT_SNIPPETS,
+  CSS_SNIPPETS,
+  LESS_SNIPPETS,
+  SASS_SNIPPETS,
+  SCSS_SNIPPETS,
+  JAVASCRIPT_SNIPPETS_ETAG,
+  TYPESCRIPT_SNIPPETS_ETAG,
+  CSS_SNIPPETS_ETAG,
+  LESS_SNIPPETS_ETAG,
+  SASS_SNIPPETS_ETAG,
+  SCSS_SNIPPETS_ETAG,
+} from './constants';
 import { redisClient } from './connection';
 import { generateAst, generateSnippets, parseSynvertSnippet, parseNql, mutateCode, getAllSyntaxKind, getTypescriptVersion } from './api';
 import { getFileName, parseCode } from "./magic/utils";
@@ -122,12 +136,46 @@ app.post('/generate-snippet', jsonParser, validateInputsOutputs, async (req: Req
   }
 });
 
+function serverEtagName(language: string) {
+  switch (language) {
+    case "css":
+      return CSS_SNIPPETS_ETAG;
+    case "less":
+      return LESS_SNIPPETS_ETAG;
+    case "sass":
+      return SASS_SNIPPETS_ETAG;
+    case "scss":
+      return SCSS_SNIPPETS_ETAG;
+    case "typescript":
+      return TYPESCRIPT_SNIPPETS_ETAG;
+    default:
+      return JAVASCRIPT_SNIPPETS_ETAG;
+  }
+}
+
+function snippetsName(language: string) {
+  switch (language) {
+    case "css":
+      return CSS_SNIPPETS;
+    case "less":
+      return LESS_SNIPPETS;
+    case "sass":
+      return SASS_SNIPPETS;
+    case "scss":
+      return SCSS_SNIPPETS;
+    case "typescript":
+      return TYPESCRIPT_SNIPPETS;
+    default:
+      return JAVASCRIPT_SNIPPETS;
+  }
+}
+
 app.get('/snippets', async (req: Request, res: Response) => {
-  const language = req.query.language;
+  const language = req.query.language as string;
   const clientEtag = req.get('If-None-Match');
   const client = redisClient();
   await client.connect();
-  const serverEtag = await client.get(language === "typescript" ? TYPESCRIPT_SNIPPETS_ETAG : JAVASCRIPT_SNIPPETS_ETAG);
+  const serverEtag = await client.get(serverEtagName(language));
   if (clientEtag === serverEtag) {
     res.status(304).end();
     await client.disconnect();
@@ -136,7 +184,7 @@ app.get('/snippets', async (req: Request, res: Response) => {
 
   res.set("ETag", serverEtag);
   res.set('Content-Type', 'application/json');
-  let response = await client.get(language === "typescript" ? TYPESCRIPT_SNIPPETS : JAVASCRIPT_SNIPPETS);
+  let response = await client.get(snippetsName(language));
   JSON.parse(response)
   res.json({ snippets: JSON.parse(response) });
   await client.disconnect();
