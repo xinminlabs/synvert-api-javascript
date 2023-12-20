@@ -219,7 +219,6 @@ app.get('/check-versions', async (req: Request, res: Response) => {
 });
 
 app.post('/npmjs-webhook', async (req: Request, res: Response) => {
-  console.log(req.params.event, req.params.name, req.params.version)
   if (req.params.event === "package:publish") {
     const client = redisClient();
     await client.connect();
